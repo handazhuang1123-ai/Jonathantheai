@@ -1,38 +1,45 @@
 ---
 title: OpenClaw Jonathantheai - Memory Index
 created: 2026-02-24
+last_updated: 2026-02-24
 owner: zhuangba (壮爸)
 purpose: Context transfer for new Claude sessions about Jonathan (OpenClaw agent)
 ---
 
-# OpenClaw Jonathantheai - Memory Index
+# OpenClaw Jonathantheai - 记忆索引
 
-This directory contains structured memory files from sessions managing **Jonathan**, an OpenClaw AI agent running on zhuangba's Linux server.
+本目录记录 **Jonathan**（OpenClaw AI agent）在壮爸 Linux 服务器上的运行、调试与优化过程。
 
-## Quick Context for New Sessions
+## 快速背景
 
-**Jonathan** is an OpenClaw v2026.2.23 agent running on a Linux server (i5-7300HQ/8GB/GTX1050) accessible via Telegram (@zhuangba_openclaw_1st_bot). It uses `gpt-5.3-codex-high` model via a third-party API relay. Server is in mainland China and uses mihomo proxy for external access.
+Jonathan 是一个 OpenClaw agent，通过 Telegram Bot 与用户交互，运行在中国大陆的 Linux 服务器上，依赖代理访问外部 API。具体版本、模型、硬件配置等详见 `*_setup-summary.md`。
 
-## Reading Order
+## 阅读顺序
 
-| Priority | File | When to Read |
-|----------|------|-------------|
-| 1 | `*_setup-summary.md` | Always — core config and architecture |
-| 2 | `*_server-env.md` | When touching server, network, or proxy |
-| 3 | `*_evaluation.md` | When assessing or improving Jonathan |
-| 4 | `*_token-analysis.md` | When optimizing cost or performance |
-| 5 | `*_credentials.md` | Only when credentials are needed (SENSITIVE) |
+| 优先级 | 文件 | 何时加载 |
+|--------|------|---------|
+| 1 | `*_setup-summary.md` | 始终加载 — 核心配置与架构 |
+| 2 | `*_server-env.md` | 涉及服务器、网络、代理、连接问题、服务状态时 |
+| 3 | `*_evaluation.md` | 涉及评估、改进 Jonathan 的能力或行为时 |
+| 4 | `*_token-analysis.md` | 涉及 token 消耗、成本、性能优化时 |
+| 5 | `*_credentials.md` | 仅在明确需要凭据时加载（敏感文件，已被 .gitignore 排除） |
 
-## File Naming Convention
+> **注意**：以上 "何时加载" 是指导性描述而非精确匹配条件。判断时应结合用户意图的语义，不要拘泥于字面措辞。
+
+## 文件命名规范
+
 ```
 YYYY-MM-DD_topic-name.md
 ```
-Each file has YAML frontmatter with `tags`, `depends_on`, and `status` for programmatic reference.
 
-## Key Facts (TL;DR)
-- Server: 192.168.0.18 (LAN) / 100.79.146.9 (Tailscale)
-- Proxy: mihomo on port 7890, auto-start
-- Gateway: port 18789, loopback only, SSH tunnel for access
-- Jonathan scored 7/10 overall: good executor, weak on proactive memory
-- First session used 326.6K tokens across 6 user messages
-- Telegram Bot token is COMPROMISED and should be rotated
+每个文件包含 YAML frontmatter：`tags`、`depends_on`、`status`、`last_updated`，用于渐进式加载和变更归属判断。
+
+## 关键事实 (TL;DR)
+
+<!-- 每条标注 [固定] 或 [可变]，方便 update-memory 时判断是否需要更新 -->
+- [可变] 服务器: 192.168.0.18 (LAN) / 100.79.146.9 (Tailscale)
+- [可变] 代理: mihomo 端口 7890，自启动
+- [可变] Gateway: 端口 18789，仅 loopback，通过 SSH 隧道访问
+- [可变] Jonathan 综合评分 7/10：执行力强，主动记忆弱
+- [固定] 首次会话消耗 326.6K tokens / 6 条用户消息
+- [可变] Telegram Bot token 已泄露，需轮换

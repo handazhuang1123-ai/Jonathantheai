@@ -25,7 +25,7 @@ last_updated: 2026-02-24
 - **Gateway port**: 18789
 - **Gateway bind**: Changed to `loopback` (was `LAN`, caused security error)
 - **Gateway auth**: Token (auto-generated)
-- **Gateway token**: `c42d8e759268235fab4a0699b2ab883cf29e66ca13cee42a`
+- **Gateway token**: (见 credentials.md)
 - **Tailscale exposure**: Off
 - **Systemd service**: Enabled with lingering for user `zhuangba`
 - **Service file**: `/home/zhuangba/.config/systemd/user/openclaw-gateway.service`
@@ -44,7 +44,7 @@ last_updated: 2026-02-24
 - **Bot name**: @zhuangba_openclaw_1st_bot
 - **Display name**: Jonathan
 - **Polling mode**: enabled, running
-- **Pairing**: Approved for Telegram user 7940086514 (John Snow / zhuangba)
+- **Pairing**: Approved for zhuangba's Telegram account (user ID 见 credentials.md)
 
 ### 5. Proxy (mihomo)
 - See `2026-02-24_server-env.md` for details

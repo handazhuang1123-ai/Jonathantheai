@@ -17,7 +17,7 @@
 
 在项目根目录下运行：
 ```bash
-ls *.md *_*.md 2>/dev/null
+ls *_*.md 2>/dev/null
 ls archive/*_*.md 2>/dev/null
 ```
 （如果当前目录不在项目根，先 cd 到项目根目录。项目根 = 包含 README.md 和 `YYYY-MM-DD_*.md` 文件的目录。）

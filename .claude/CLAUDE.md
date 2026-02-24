@@ -13,7 +13,7 @@
 
 ## 文件结构
 
-详见 `README.md`（文件索引 + TL;DR + 阅读顺序）。
+项目根目录下的 `README.md` 是文件索引（阅读顺序 + TL;DR）。
 
 三层架构：
 - **索引层**: README.md（始终最新）
@@ -24,5 +24,6 @@
 
 - 永远用中文
 - 不要一次性读取所有文件，按 README 中的优先级和任务需要渐进加载
-- `*_credentials.md` 仅在明确需要凭据时读取
+- frontmatter 中 `status` 含 `SENSITIVE` 或 tags 含 `sensitive` 的文件，仅在明确需要时读取
 - 修改记忆文件时遵循 `/jonathan-update-memory` 中的规范
+- 如果用户直接提出任务而没有先运行 `/jonathan-context`，你应主动先读取 README.md 获取 TL;DR 和阅读顺序，再根据任务需要加载相关文件，然后再开始工作
