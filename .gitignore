@@ -1,0 +1,11 @@
+# Sensitive credentials - DO NOT commit
+*_credentials.md
+
+# Editor backups
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
