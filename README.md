@@ -1,7 +1,7 @@
 ---
 title: OpenClaw Jonathantheai - Memory Index
 created: 2026-02-24
-last_updated: 2026-02-25
+last_updated: 2026-02-26
 owner: zhuangba (壮爸)
 purpose: Context transfer for new Claude sessions about Jonathan (OpenClaw agent)
 ---
@@ -45,4 +45,5 @@ YYYY-MM-DD_topic-name.md
 - [可变] Day 2 会话消耗 138K tokens（cache 命中 91%），但 43 次错误（message 参数 + timeout）
 - [可变] 服务器监控系统已部署（~/monitor/，cron 每天 08:00，GitHub: Jonathantheai/monitor-2026-02-25）
 - [可变] Telegram Bot token 已泄露，需轮换
-- [可变] 语音消息下载失败、message 工具参数兼容问题待修复
+- [可变] 语音消息下载失败待修复，message 工具参数已在 TOOLS.md 记录正确用法
+- [可变] AGENTS.md 已精简（7,804 → 3,143 chars），system prompt 降 18%，每次 API 调用省 ~1,000 tokens

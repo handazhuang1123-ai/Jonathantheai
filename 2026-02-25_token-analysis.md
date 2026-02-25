@@ -4,7 +4,7 @@ date: 2026-02-25
 tags: [tokens, cost, performance, optimization]
 depends_on: [2026-02-24_setup-summary.md]
 status: current
-last_updated: 2026-02-25
+last_updated: 2026-02-26
 supersedes: archive/2026-02-24_token-analysis.md
 ---
 
@@ -32,18 +32,27 @@ supersedes: archive/2026-02-24_token-analysis.md
 - **错误集中爆发**：43 次错误全部集中在 message 工具参数兼容问题和超时，非模型能力问题
 - **总量效率提升**：虽然活跃时间更长（19h vs 4.6h），总 token 反而降低 58%
 
-## System Prompt Overhead（不变）
+## System Prompt Overhead
 
-Total system prompt: **25,405 chars ≈ 5,500 tokens/call**
+> 2/26 壮爸直接精简了 AGENTS.md，system prompt 大幅缩减。
 
-| Component | Chars | % |
-|-----------|------:|--:|
-| Tool schemas (21 tools) | 14,590 | 57.4% |
-| AGENTS.md | 7,804 | 30.7% |
-| Skills descriptions (5) | 2,450 | 9.6% |
-| 其余（SOUL/TOOLS/IDENTITY/USER/HEARTBEAT/BOOTSTRAP） | 5,237 | 20.6% |
+| Component | 精简前 | 精简后 | Δ |
+|-----------|------:|------:|--:|
+| AGENTS.md | 7,804 | 3,143 | **-60%** |
+| Tool schemas (21 tools) | 14,590 | 14,590 | 不变（需平台侧优化） |
+| Skills descriptions (5) | 2,450 | 2,450 | 不变 |
+| TOOLS.md + 其余 | ~5,237 | ~5,293 | +56（TOOLS.md 加入实际内容） |
+| **Total** | **~25,405** | **~20,800** | **-18%** |
 
-> AGENTS.md + Tool schemas 占系统 prompt 的 88%。
+> Tool schemas 仍是最大头（70%），其中 message 工具一个就占 4,220 chars / 85 参数。这部分需要 OpenClaw 平台侧优化（按需加载 schema），用户无法干预。
+
+## Token 放大效应分析
+
+Day 1 用户实际输入约 52 tokens，消耗 326,600 tokens，**放大比 1:6,280**。原因：
+
+1. **固定税**：每次 API 调用重发系统 prompt（~5,500 tokens），26 次调用 = ~143K（占总量 44%）
+2. **累积税**：每次工具调用重发完整对话历史，单次 input 从 8K 增长到 14.5K
+3. **错误税**：Day 2 的 40 次 message 参数错误 = 40 次无效上下文重发，浪费 ~20K+ tokens
 
 ## Day 1 Per-Message Breakdown（基线参考）
 
@@ -66,7 +75,8 @@ Total system prompt: **25,405 chars ≈ 5,500 tokens/call**
 
 ## Optimization Suggestions
 
-- 精简 AGENTS.md（去掉不用的群聊规则等）可节省 ~3K tokens/call
-- 保持长会话以利用 cache（但定期 `/new` 避免 context 溢出）
-- 修复 message 工具参数问题，消除无效重试
+- ~~精简 AGENTS.md~~ ✅ 已完成（2/26，7,804 → 3,143 chars）
+- ~~修复 message 工具参数问题~~ ✅ 已在 TOOLS.md 记录正确参数
+- 保持长会话以利用 cache（但定期 `/reset` 避免 context 膨胀）
 - 对简单任务限制工具调用轮数
+- **Gateway 管理策略**：`/reset` 是当前最优解 — 清空对话历史控制 context 大小，但不重启 Gateway 进程，cache 不失效。频繁重启 Gateway 会丢 cache（token 翻倍），从不重启会导致 context 膨胀和内存风险（Day 2 峰值 794.7MB）
