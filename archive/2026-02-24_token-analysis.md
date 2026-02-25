@@ -5,7 +5,7 @@ session_id: bb6cb8ff-546a-4a70-bace-c315da01d2e8
 tags: [tokens, cost, performance, optimization]
 depends_on: [2026-02-24_setup-summary.md]
 status: current
-last_updated: 2026-02-24
+last_updated: 2026-02-25
 ---
 
 # Token Usage Analysis - First Session
@@ -83,3 +83,27 @@ Total system prompt: **25,405 chars ≈ 5,500 tokens**
 - 避免频繁重启 Gateway 以保持 cache
 - 对简单任务考虑限制工具调用轮数
 - 长对话定期 `/new` 重置会话
+
+---
+
+## Day 2 Session (2026-02-25) — 跨天延续
+
+| Metric | Day 1 | Day 2 | Notes |
+|--------|-------|-------|-------|
+| Session ID | bb6cb8ff... | 576c53d4...（同一会话延续） | Day 2 是 /reset 后的新会话 |
+| Duration | 4h39m | ~19h（00:11 - 19:31） | 跨天同一会话 |
+| Telegram messages | 6 user msgs | ~76 条发送 | 活跃度大幅提升 |
+| Input tokens | 259.2K | 144,099 | |
+| Output tokens | 11.3K | 736 | 极低，多数输出走 Telegram |
+| Cache read | 56.1K | 131,584 | cache 利用率大幅提升 |
+| Total tokens | 326.6K | 137,942 | 更高效（持续会话 cache 命中） |
+| Compaction count | - | 0 | 未触发压缩 |
+| Context window | 1,000,000 | 1,000,000 | |
+| Errors | 0 | 43 | 40x message 参数错误 + 3x timeout |
+
+### Day 2 Key Observations
+
+- **Cache 命中大幅提升**：131K cache read（占 input 的 91%），因为是长时间同一会话
+- **Output 异常低（736 tokens）**：因为大多数回复通过 Telegram message 工具发送，不计入 output
+- **错误率高**：43 次错误（40 次 message 参数错误 + 3 次 10 分钟超时）
+- **效率提升**：总 token 降至 138K（Day 1 的 42%），得益于高 cache 命中

@@ -8,7 +8,10 @@
 
 ## 可用命令
 
+三命令闭环：加载背景 → 评估表现 → 持久化结论
+
 - `/jonathan-context` — 渐进式加载 Jonathan 背景资料（新 session 首先运行）
+- `/jonathan-evaluate` — 通过 SSH 采集第一手数据，标准化评估 Jonathan 表现
 - `/jonathan-update-memory` — 操作结束后更新记忆文件
 
 ## 文件结构
