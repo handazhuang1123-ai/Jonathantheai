@@ -1,6 +1,9 @@
 # Sensitive credentials - DO NOT commit
 *_credentials.md
 
+# Local per-user preferences (auto-loaded by Claude Code)
+CLAUDE.local.md
+
 # Editor backups
 *.swp
 *.swo
