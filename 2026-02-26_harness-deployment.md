@@ -82,9 +82,9 @@ MDIE 命令验证结果（全部通过）：
 
 - [x] 实弹测试：Telegram → Jonathan 读 PLAYBOOK → 执行 Harness 操作 ✅ D5 (2/28)
 - [x] MDIE 精确监控：issues.json 解析 + git log + tmux 状态 ✅ D5（修复 PLAYBOOK 后）
-- [ ] HEARTBEAT 驱动：Harness 运行中 Jonathan 被 HEARTBEAT 唤醒并自动监控
-- [ ] 完整闭环：壮爸提需求 → spec → Harness → MDIE → coding 完成 → 汇报
-- [ ] Coding session 质量：验证 Harness 编码阶段产出的代码是否可用
+- [ ] HEARTBEAT 驱动：Harness 运行中 Jonathan 被 HEARTBEAT 唤醒并自动监控（D5 期间 2 次 HEARTBEAT 正确返回 HEARTBEAT_OK，但当时无 Harness 运行）
+- [x] 完整闭环：壮爸提需求 → spec → Harness → MDIE → coding 完成 → 汇报 ✅ D5（guess-number 项目，11/12 Done）
+- [x] Coding session 质量：验证 Harness 编码阶段产出的代码是否可用 ✅ D5（main.py 功能完整、结构清晰、9 个 commit）
 
 ## PLAYBOOK 修复记录 (2/28)
 

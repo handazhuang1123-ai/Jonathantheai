@@ -46,7 +46,18 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 - ✅ tmux has-session 确认已停止
 - ✅ 回复数据完全准确，主动建议下一步（重启或诊断）
 
-**结论**：PLAYBOOK 措辞直接控制 Jonathan 的监控行为。"按需"被理解为"可选"，改为"必须"后立即生效。
+**Test 3（完整闭环 — 重启 Harness 跑到完成）**：
+- ✅ 精确监控全程使用（issues.json + git log + tmux）
+- ✅ 2 次进度汇报成功发送（Done 3 和 Done 9），但跳过了 Done 6
+- ✅ 用户指令"最多等 30 秒"后 sleep 间隔立即从 180s 降到 30s
+- ⚠️ sleep 无上限递增（25→180s）导致 3 次 600s 超时，每次需用户重新触发
+- ⚠️ 汇报后 session 结束，无人监控到项目完成（11/12 Done，META issue 不需要代码）
+- Harness 产出：~/projects/guess-number/，9 个 commit，main.py 功能完整、结构清晰
+
+**结论**：
+1. 手册措辞直接控制 Jonathan 行为——"按需"=跳过，"必须"=执行
+2. 用户指令中的约束（sleep 上限）也立即遵守
+3. 需在 MDIE.md 中写死 sleep 上限，不能依赖用户每次口头约束
 
 ### Day 4 (2026-02-27) — 观察数据已采集，正式打分待完成
 
@@ -76,29 +87,9 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 
 ---
 
-## Day 4 详细观察
+## Day 4 摘要
 
-### 交付成果
-
-1. **Keychain 问题修复** — 系统性诊断（Secret Service 仅 session 集合，缺持久 keyring），引导用户 GUI 创建后验证通过。Bridge 不再报 no keychain。
-2. **监控推送 PATH 修复** — 发现 cron 环境无 openclaw 命令，修 alert.sh 用全路径兜底（commit c7488f4）
-3. **邮件系统切换到 163 POP3** — IMAP 被风控拦截，加了 POP3 fallback（commit 2bda483）。POP3 收件+分类+入库验证通过。
-4. **Chrome 代理快捷方式** — 创建 Desktop/Chrome-Proxy.desktop，修复 microsoft.com DIRECT 规则
-5. **TOOLS.md 精简** — 按用户要求将 message 工具改为只留稳定线路（3 个 commit）
-6. **daily memory 主动创建** — 首次无需提醒即创建 2026-02-27.md
-
-### 正面行为
-
-- keychain 诊断方法论显著改善：先 secret-tool 验证 → D-Bus introspect → gnome-keyring 状态 → 定位根因再修
-- 被用户指出"需要提醒我在 GUI 操作"后立即认错并写入记忆
-- Resend 调研主动且分析到位，能给出"不要自建"的明确建议
-
-### 严重问题
-
-1. **邮件选型"散弹枪"** — 未预研各服务限制，串行让用户注册 3+ 账号（Gmail 要手机号、Outlook 打不开、163 风控、QQ 14 天限制）。应先给对比表再让用户选。
-2. **message 工具 9 次连续失败** — TOOLS.md 已记录正确用法，但工具调用仍用错误参数。声称"已补发"但实际未成功，经用户追问才走 CLI 发出。
-3. **POP3 代码 bytes bug** — `str(resp).startswith("+OK")` 对 bytes 永远失败，导致 seen=2 inserted=0。壮爸侧 SSH 发现并修复。
-4. **模型端点大面积 502** — 76 次 HTTP 502 导致 heartbeat 全部空转，2 次 `Unhandled stop reason: error` 对话卡死。非 Jonathan 行为问题，是 right.codes 服务不稳定。
+> 综合待打分。交付：keychain 修复 + 监控推送 PATH 修复 + 163 POP3 切换 + TOOLS.md 精简。正面：keychain 诊断方法论质变（系统性排障 vs D3 散弹枪）、首次主动创建 daily memory。严重问题：邮件选型散弹枪（串行 5 个服务试错）、message 参数 9 次回归、POP3 bytes bug 未自测、right.codes 76x 502 导致 heartbeat 空转。
 
 ---
 
@@ -131,30 +122,23 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 | # | 问题 | 发现日期 | 状态 |
 |---|------|----------|------|
 | 1 | Telegram Bot token 需轮换 | 2/24 | 未处理 |
-| 2 | 语音消息 Failed to download media | 2/25 | 未处理 |
-| 3 | message 工具参数兼容问题 | 2/25 | ⚠️ D4 回归 9 次（D3 仅 4 次）|
-| 4 | workspace 多个核心文件 untracked | 2/25 | 未处理（持续 4 天）|
+| 3 | message 工具参数兼容问题 | 2/25 | ⚠️ D4 回归 9 次 |
+| 4 | workspace 多个核心文件 untracked | 2/25 | 未处理（持续 5 天）|
 | 5 | SSH 绑定 0.0.0.0 + 无防火墙 | 2/24 | 未处理 |
 | 6 | browser 工具超时导致 Gateway 崩溃 | 2/26 | 未处理 |
-| 7 | Proton Bridge keychain 不可用 | 2/26 | ✅ 已修复（D4，GUI 创建持久 keyring）|
-| 8 | 监控推送不生效 | 2/26 | ✅ 已修复（D4，PATH 兜底 c7488f4）|
-| 9 | rg 未安装、elevated 权限不可用 | 2/26 | 未处理 |
-| 10 | POP3 fetch bytes bug（壮爸侧修复） | 2/27 | ✅ 已修复（未 commit）|
-| 11 | 163 IMAP Unsafe Login 风控 | 2/27 | 已知限制，用 POP3 绕过 |
-| 12 | right.codes 模型端点 502 频繁 | 2/27 | 76 次/天，heartbeat 空转 |
-| 13 | Unhandled stop reason: error 对话卡死 | 2/27 | 模型端点问题导致 |
-| 14 | PLAYBOOK"按需"措辞导致 MDIE 被跳过 | 2/28 | ✅ 已修复（改为"必须立即读取"）|
+| 12 | right.codes 502 | 2/27 | D4: 76 次/天；D5: ~1h 连续 502 |
+| 15 | sleep 无上限递增致 600s 超时 | 2/28 | 需在 MDIE.md 写死上限 |
+
+> 已关闭：#2(语音)、#7(keychain)、#8(推送PATH)、#9(rg)、#10(POP3 bug)、#11(163 IMAP→POP3)、#13(stop reason)、#14(PLAYBOOK措辞)
 
 ## Recommendations
 
-1. ~~修复 message 工具参数~~ ⚠️ 仍未根治，D4 回归 9 次
-2. ~~修复 keychain~~ ✅ D4 已修复
-3. ~~修复监控推送~~ ✅ D4 已修复
-4. **监控 right.codes 可用性** — 76 次 502 导致 heartbeat 全废，需要告警或备用端点
-5. **邮件 Telegram 摘要推送** — config 中开启 notifications.telegram + 配 cron
-6. **提交 POP3 bug fix** — mail_assistant.py:372 已改但未 commit
-7. **轮换 Bot token** — 已知泄露，优先级高
-8. **方案预研机制** — 推荐服务/工具前，先验证关键限制条件，避免用户串行试错
+1. **MDIE.md 写死 sleep 上限 30s + 汇报触发条件** — D5 实证最高优先级
+2. **监控 right.codes 可用性** — D4-D5 持续不稳定，需告警或备用端点
+3. **轮换 Bot token** — 已知泄露
+4. **方案预研机制** — 推荐服务前先验证限制条件
+5. **邮件 Telegram 摘要推送** — config 中开启 + 配 cron
+6. **提交 POP3 bug fix** — mail_assistant.py:372 已改未 commit
 
 ## Eval Watermark
 
