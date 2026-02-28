@@ -86,8 +86,21 @@ MDIE 命令验证结果（全部通过）：
 - [x] 完整闭环：壮爸提需求 → spec → Harness → MDIE → coding 完成 → 汇报 ✅ D5（guess-number 项目，11/12 Done）
 - [x] Coding session 质量：验证 Harness 编码阶段产出的代码是否可用 ✅ D5（main.py 功能完整、结构清晰、9 个 commit）
 
-## PLAYBOOK 修复记录 (2/28)
+## 手册修复记录 (2/28)
 
-**问题**：PLAYBOOK 原文"按需加载"+ "HEARTBEAT 触发时也读"→ Jonathan 理解为手动监控不需要 MDIE.md，只用 capture-pane 粗糙轮询
-**修复**：改为"启动 Harness 后必须立即 cat MDIE.md"+ 警告不要只靠 capture-pane
-**验证**：修复后 Jonathan 立即读取 MDIE.md 并使用精确监控命令，回复数据完全准确
+**PLAYBOOK 修复**：
+- "按需加载"→"启动 Harness 后必须立即 cat MDIE.md"+ 警告不要只靠 capture-pane
+- 工作流加 spec 确认环节（壮爸批准后才启动）
+- 加项目目录规范（~/projects/，壮爸指定名称）
+
+**MDIE 修复**：
+- sleep 上限 30s + 禁止递增
+- 每 3 Done 必须汇报
+- 8 分钟超时预警（主动汇报后停止循环）
+- Done ≥ 90% + tmux 停止 → 必须立即汇报完成
+- {project} 占位符说明 + issues.json 容错
+
+**HEARTBEAT 修复**：
+- 路径修正（直接引用 workspace 内文件）
+- 有 Harness → 直接 cat MDIE.md（消除间接引用跳过风险）
+- 汇报逻辑统一到 MDIE.md

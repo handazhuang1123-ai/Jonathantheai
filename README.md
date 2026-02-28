@@ -65,4 +65,4 @@ YYYY-MM-DD_topic-name.md
 - [可变] D5 已验证：Telegram 实弹测试 ✅、Harness 编排流程 ✅、MDIE 精确监控 ✅（修复 PLAYBOOK 后）、完整闭环 ✅（guess-number 11/12 Done）、coding 质量 ✅（9 commit，代码清晰）
 - [可变] 待验证：HEARTBEAT 自动驱动 MDIE（Harness 运行中被 HEARTBEAT 唤醒并自动监控）
 - [可变] 待操作：邮件 Telegram 摘要推送开启 + POP3 bug fix commit + 发测试邮件验证增量
-- [可变] PLAYBOOK.md 已修复：MDIE.md 从"按需"改为"启动 Harness 后必须立即读取"（2/28）
+- [可变] workspace 手册全面修复（2/28）：PLAYBOOK 加 spec 确认、MDIE 加 sleep 30s 上限+汇报触发+超时预警、HEARTBEAT 直接指向 MDIE
