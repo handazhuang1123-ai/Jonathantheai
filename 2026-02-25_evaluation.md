@@ -112,6 +112,7 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 - **Cannot**: 根治 message 工具参数问题（TOOLS.md 有记录但行为未改）
 - **Cannot**: 自测代码边界条件（POP3 bytes bug）
 - **Cannot**: 自主判断何时使用精细监控 — 手册写"按需"就跳过，写"必须"才执行（D5 实证）
+- **Cannot**: 主动质量检查 — D5 全程只数 Done/Total，从未检查代码能否运行、有无 regression、项目目录是否整洁（已在 MDIE.md 加 [Q] Quality Check 段落修复）
 - **Limitation**: 163 IMAP 对新号+服务器 IP 风控严格，短期无法解除
 - **Limitation**: 模型端点（right.codes）不稳定时 agent 完全瘫痪，无降级机制
 
@@ -127,13 +128,15 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 | 5 | SSH 绑定 0.0.0.0 + 无防火墙 | 2/24 | 未处理 |
 | 6 | browser 工具超时导致 Gateway 崩溃 | 2/26 | 未处理 |
 | 12 | right.codes 502 | 2/27 | D4: 76 次/天；D5: ~1h 连续 502 |
-| 15 | sleep 无上限递增致 600s 超时 | 2/28 | 需在 MDIE.md 写死上限 |
+| 15 | sleep 无上限递增致 600s 超时 | 2/28 | ✅ 已在 MDIE.md 写死 30s 上限 |
+| 16 | 质量监控完全空白 | 2/28 | ✅ 已在 MDIE.md 加 [Q] Quality Check + coding_prompt 加卫生规则 |
 
 > 已关闭：#2(语音)、#7(keychain)、#8(推送PATH)、#9(rg)、#10(POP3 bug)、#11(163 IMAP→POP3)、#13(stop reason)、#14(PLAYBOOK措辞)
 
 ## Recommendations
 
-1. **MDIE.md 写死 sleep 上限 30s + 汇报触发条件** — D5 实证最高优先级
+1. ~~**MDIE.md 写死 sleep 上限 30s + 汇报触发条件**~~ — ✅ 已完成 (2/28)
+1b. **MDIE.md [Q] Quality Check 段落** — ✅ 已完成 (2/28)，含代码可运行性、commit 审查、卫生检查、无限 session 检测
 2. **监控 right.codes 可用性** — D4-D5 持续不稳定，需告警或备用端点
 3. **轮换 Bot token** — 已知泄露
 4. **方案预研机制** — 推荐服务前先验证限制条件

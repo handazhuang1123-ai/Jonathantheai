@@ -104,3 +104,9 @@ MDIE 命令验证结果（全部通过）：
 - 路径修正（直接引用 workspace 内文件）
 - 有 Harness → 直接 cat MDIE.md（消除间接引用跳过风险）
 - 汇报逻辑统一到 MDIE.md
+
+**质量监控修复 (2/28)**：
+- MDIE.md 新增 [Q] Quality Check 段落（Monitor 后必须执行）：代码可运行性、commit 变更审查、项目卫生、无限 session 检测
+- coding_prompt.md 追加项目卫生规则（截图→screenshots/、完成后跑主入口、临时脚本用完即删）
+- MEMORY.md 追加质量检查经验条目
+- 根因同 D5 进度监控问题：MDIE 写了 Diagnose 模式但 Jonathan 从未执行（因为不是"必须"）
