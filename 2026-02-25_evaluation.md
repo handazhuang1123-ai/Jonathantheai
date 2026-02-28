@@ -97,7 +97,8 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 - **Cannot**: 根治 message 工具参数问题（TOOLS.md 有记录但行为未改）
 - **Cannot**: 自测代码边界条件（POP3 bytes bug）
 - **Cannot**: 自主判断何时使用精细监控 — 手册写"按需"就跳过，写"必须"才执行（D5 实证）
-- **Can（条件性）**: 质量检查 — MDIE.md 加 [Q] Quality Check 后，验证测试 4/4 通过（代码运行 ✅、commit 审查 ✅、卫生检查 ✅ 发现 20 个 .png、无限 session ✅）。但仅在手册写"必须"时执行，不会自主发起
+- **Can**: 非 Harness 场景自主代码审查（calculator 测试：发现乘法回归 bug 并独立修复）
+- **Can（条件性）**: 质量检查 — MDIE.md 加 [Q] Quality Check 后，手动触发 4/4 通过；HEARTBEAT 自动触发 3/5（发现 crash ✅，但卫生漏检 ❌ + 未干预 ❌，已二次修复 MDIE.md）。仅在手册写"必须"时执行
 - **Limitation**: 163 IMAP 对新号+服务器 IP 风控严格，短期无法解除
 - **Limitation**: 模型端点（right.codes）不稳定时 agent 完全瘫痪，无降级机制
 
@@ -115,6 +116,7 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 | 12 | right.codes 502 | 2/27 | D4: 76 次/天；D5: ~1h 连续 502 |
 | 15 | sleep 无上限递增致 600s 超时 | 2/28 | ✅ 已在 MDIE.md 写死 30s 上限 |
 | 16 | 质量监控完全空白 | 2/28 | ✅ 已在 MDIE.md 加 [Q] Quality Check + coding_prompt 加卫生规则 |
+| 17 | HEARTBEAT 质量检查：卫生缓存 + 未干预 | 2/28 | ✅ 已修复 MDIE.md（必须重新执行 + 必须立即 L1 干预）|
 
 > 已关闭：#2(语音)、#7(keychain)、#8(推送PATH)、#9(rg)、#10(POP3 bug)、#11(163 IMAP→POP3)、#13(stop reason)、#14(PLAYBOOK措辞)
 
@@ -127,6 +129,9 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 4. **方案预研机制** — 推荐服务前先验证限制条件
 5. **邮件 Telegram 摘要推送** — config 中开启 + 配 cron
 6. **提交 POP3 bug fix** — mail_assistant.py:372 已改未 commit
+7. **复验 HEARTBEAT 二次修复** — MDIE.md 加了"必须立即 L1 干预"+"禁止复用结论"，需下次 Harness 运行时验证
+8. **清理 todo-cli 测试项目** — ~/projects/todo-cli/（Done=5/30，已停），可删除
+9. **initializer 自适应上限调优** — todo-cli 得到 30 issues（偏多），简单项目应 ≤15
 
 ## Eval Watermark
 

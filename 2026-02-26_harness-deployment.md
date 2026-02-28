@@ -2,6 +2,7 @@
 title: Harness 部署记录
 date: 2026-02-26
 last_updated: 2026-02-28
+# second update 2/28: HEARTBEAT验证+二次修复
 tags: [harness, deployment, mdie, monitoring]
 depends_on: [2026-02-24_setup-summary.md]
 status: current
@@ -82,7 +83,7 @@ MDIE 命令验证结果（全部通过）：
 
 - [x] 实弹测试：Telegram → Jonathan 读 PLAYBOOK → 执行 Harness 操作 ✅ D5 (2/28)
 - [x] MDIE 精确监控：issues.json 解析 + git log + tmux 状态 ✅ D5（修复 PLAYBOOK 后）
-- [ ] HEARTBEAT 驱动：Harness 运行中 Jonathan 被 HEARTBEAT 唤醒并自动监控（D5 期间 2 次 HEARTBEAT 正确返回 HEARTBEAT_OK，但当时无 Harness 运行）
+- [x] HEARTBEAT 驱动：HEARTBEAT 唤醒 → 读 HEARTBEAT.md → 检测 harness tmux → 执行 MDIE 全流程（含 [Q]）✅（2/28 todo-cli 测试，评分 3/5：发现 crash 但卫生漏检+未干预）
 - [x] 完整闭环：壮爸提需求 → spec → Harness → MDIE → coding 完成 → 汇报 ✅ D5（guess-number 项目，11/12 Done）
 - [x] Coding session 质量：验证 Harness 编码阶段产出的代码是否可用 ✅ D5（main.py 功能完整、结构清晰、9 个 commit）
 - [x] MDIE [Q] Quality Check：Jonathan 收到质量检查指令后自主执行 4/4 项检查 ✅（2/28 验证，发现 20 个 .png 散落、代码 EOF 容错不足、commit 无 regression、tmux 已停）
@@ -111,3 +112,10 @@ MDIE 命令验证结果（全部通过）：
 - coding_prompt.md 追加项目卫生规则（截图→screenshots/、完成后跑主入口、临时脚本用完即删）
 - MEMORY.md 追加质量检查经验条目
 - 根因同 D5 进度监控问题：MDIE 写了 Diagnose 模式但 Jonathan 从未执行（因为不是"必须"）
+
+**质量监控二次修复 (2/28)**：
+- [Q] 可运行性失败后必须立即执行 Level 1 干预（塞纸条通知编码 agent）
+- [Q] 卫生检查必须重新执行命令，禁止复用上一轮结论
+- 根因：HEARTBEAT 实弹测试中 Jonathan 发现 crash 只汇报不干预 + 卫生检查用旧缓存报"0"（实际 11 个）
+- todo-cli 测试项目（~/projects/todo-cli/）已停止（Done=5/30），可清理
+- initializer 对 todo-cli 创建 30 issues（偏多），自适应上限仍需调优
