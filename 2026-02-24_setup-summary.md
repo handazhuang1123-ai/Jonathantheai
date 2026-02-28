@@ -6,7 +6,7 @@ author: Claude Opus 4.6 (assisting zhuangba)
 tags: [openclaw, setup, installation, onboarding]
 depends_on: []
 status: current
-last_updated: 2026-02-25
+last_updated: 2026-02-27
 ---
 
 # OpenClaw Setup Summary - 2026-02-24
@@ -76,6 +76,13 @@ last_updated: 2026-02-25
 4. **Git commit failed (no user info)** → Configured git global user
 5. **noVNC for remote viewing** → Installed and configured on port 6080
 
+### 7. Harness (Autonomous Coding Agent)
+- **Install path**: `~/projects/harness-openai/`
+- **Wrapper script**: `~/projects/harness-openai/run_harness.sh`
+- **Operation manual**: `~/.openclaw/workspace/` 下 PLAYBOOK.md（入口）+ APP_SPEC_GUIDE.md + MDIE.md
+- **Python venv**: `~/projects/harness-openai/venv/` (aiohttp + playwright)
+- **Details**: See `2026-02-26_harness-deployment.md`
+
 ## External Monitoring Interface（壮爸 → Jonathan 的观测接口）
 
 壮爸通过 Claude Code（WSL 环境）SSH 进入 Jonathan 所在服务器来监控和评估 Jonathan。这是获取第一手数据的**唯一可靠接口**。
@@ -92,6 +99,8 @@ last_updated: 2026-02-25
 - 服务日志：`journalctl --user -u openclaw-gateway --since today`
 - workspace：`~/.openclaw/workspace/`（含 MEMORY.md、memory/、git 历史）
 - 监控报告：`~/monitor/reports/`
+- Harness 操作手册：`~/.openclaw/workspace/`（PLAYBOOK.md + APP_SPEC_GUIDE.md + MDIE.md）
+- Harness 项目产出：`~/projects/{project}/.issue_store/issues.json`
 
 > 注意：局域网 IP 由 DHCP 分配，重启后可能变动。如网络环境变化，需先确认 IP 或改用 Tailscale。
 

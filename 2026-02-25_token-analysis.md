@@ -4,7 +4,7 @@ date: 2026-02-25
 tags: [tokens, cost, performance, optimization]
 depends_on: [2026-02-24_setup-summary.md]
 status: current
-last_updated: 2026-02-26
+last_updated: 2026-02-27
 supersedes: archive/2026-02-24_token-analysis.md
 ---
 
@@ -12,18 +12,18 @@ supersedes: archive/2026-02-24_token-analysis.md
 
 ## Day-over-Day Summary
 
-| Metric | Day 1 (2/24) | Day 2 (2/25) | Δ |
-|--------|-------------|-------------|---|
-| Session ID | bb6cb8ff... | 576c53d4... | /reset 后新会话 |
-| Duration | 4h39m | ~19h | 跨天同一会话 |
-| User messages | 6 | ~76 条 Telegram 发送 | 活跃度大幅提升 |
-| Total tokens | **326.6K** | **137.9K** | -58%（更高效） |
-| Input tokens | 259.2K | 144,099 | |
-| Output tokens | 11.3K | 736 | 极低（回复走 Telegram） |
-| Cache read | 56.1K (17.8%) | 131,584 (**91%**) | 持续会话 cache 命中 |
-| Errors | 0 | **43** | 40x message 参数 + 3x timeout |
-| Compaction | - | 0 | 未触发压缩 |
-| Context window | 1,000,000 | 1,000,000 | |
+| Metric | Day 1 (2/24) | Day 2 (2/25) | Day 3 (2/26) | Δ(D2→D3) |
+|--------|-------------|-------------|-------------|---|
+| Session ID | bb6cb8ff... | 576c53d4... | c146bb7d + caaa0294 | 多次 /reset |
+| Duration | 4h39m | ~19h | ~17h | |
+| User messages | 6 | ~76 | ~35 | 活跃度降低 |
+| Total tokens | **326.6K** | **137.9K** | **~8.7M** | +6200%（大量工具调用） |
+| Input tokens | 259.2K | 144,099 | ~5.4M | |
+| Output tokens | 11.3K | 736 | ~142K | 含 mail-assistant 代码生成 |
+| Cache read | 56.1K (17.8%) | 131,584 (**91%**) | ~3.2M (**59%**) | cache 命中率大幅下降 |
+| Errors | 0 | **43** | **15** | -65%（改善） |
+| Compaction | - | 0 | 未知 | |
+| Context window | 1,000,000 | 1,000,000 | 1,000,000 | |
 
 ## Day 2 Key Observations
 
@@ -31,6 +31,14 @@ supersedes: archive/2026-02-24_token-analysis.md
 - **Output 统计失真**：736 tokens output 不反映真实回复量，因为大多数回复通过 message 工具发送（不计入 output）
 - **错误集中爆发**：43 次错误全部集中在 message 工具参数兼容问题和超时，非模型能力问题
 - **总量效率提升**：虽然活跃时间更长（19h vs 4.6h），总 token 反而降低 58%
+
+## Day 3 Key Observations
+
+- **Token 消耗爆增**：~8.7M tokens（vs Day 2 的 138K），增长 63 倍。主因是邮件系统设计 + Bridge 安装 + keychain 调试产生了大量工具调用
+- **Cache 命中率下降**：59% vs Day 2 的 91%。多次 /reset 导致 cache 失效（D3 跨 3 个 session）
+- **错误数下降**：15 次 vs 43 次（-65%），错误类型更分散（message 4 + browser 3 + timeout 2 + 其他 6）
+- **Output 首次有意义**：142K tokens（含 mail-assistant 代码生成），D2 仅 736 tokens
+- **代价警示**：单次散弹枪调试 + timeout 可能消耗数十万 tokens（无效调用）
 
 ## System Prompt Overhead
 
