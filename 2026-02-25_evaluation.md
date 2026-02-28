@@ -77,31 +77,16 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 
 ---
 
-## Day 2 摘要
+## Day 2-4 摘要
 
-> 综合 7/10。交付：监控系统（~/monitor/）+ 长期记忆体系。正面：监控脚本质量好、原则提炼出色、诚实度改善。严重问题：message 工具暴力重试 40 次、3 次 600s timeout、healthcheck 未闭环、workspace 文件 untracked。
-
-## Day 3 摘要
-
-> 综合 7/10。交付：邮件代理骨架（mail-assistant/）+ 监控推送配置 + Proton Bridge 安装。正面：方案设计质量高、安全意识好、授权边界清晰。严重问题：keychain 散弹枪调试 10 分钟未命中根因、监控推送"写入即完成"未验证、2 次 600s timeout。
-
----
-
-## Day 4 摘要
-
-> 综合待打分。交付：keychain 修复 + 监控推送 PATH 修复 + 163 POP3 切换 + TOOLS.md 精简。正面：keychain 诊断方法论质变（系统性排障 vs D3 散弹枪）、首次主动创建 daily memory。严重问题：邮件选型散弹枪（串行 5 个服务试错）、message 参数 9 次回归、POP3 bytes bug 未自测、right.codes 76x 502 导致 heartbeat 空转。
+> **D2** 综合 7/10。交付：监控系统 + 记忆体系。问题：message 暴力重试 40 次、3 次 timeout。
+> **D3** 综合 7/10。交付：邮件代理 + Proton Bridge。问题：keychain 散弹枪调试、推送未验证。
+> **D4** 综合待打分。交付：keychain 修复 + POP3 切换。问题：邮件选型散弹枪、message 9 次回归、502 空转。
+> **Memory**：D1-2 被动→D3 有更新但缺 daily→D4 首次主动创建 daily memory ✅
 
 ---
 
-## Memory Behavior
-
-- Day 1-2：被动，需提醒
-- Day 3：有更新但缺 daily memory
-- Day 4：✅ 首次主动创建 daily memory（2026-02-27.md），质量好（keychain 根因 + 交互改进 + 消息路径）
-
----
-
-## Capability Boundaries（D4 更新）
+## Capability Boundaries（D5 更新）
 
 - **Can**: 系统性排障复杂环境问题（keychain：D-Bus → Secret Service → keyring 持久化，有方法论了）
 - **Can**: 代码快速适配（POP3 fallback 从发现到提交 ~15 分钟）
@@ -112,7 +97,7 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 - **Cannot**: 根治 message 工具参数问题（TOOLS.md 有记录但行为未改）
 - **Cannot**: 自测代码边界条件（POP3 bytes bug）
 - **Cannot**: 自主判断何时使用精细监控 — 手册写"按需"就跳过，写"必须"才执行（D5 实证）
-- **Cannot**: 主动质量检查 — D5 全程只数 Done/Total，从未检查代码能否运行、有无 regression、项目目录是否整洁（已在 MDIE.md 加 [Q] Quality Check 段落修复）
+- **Can（条件性）**: 质量检查 — MDIE.md 加 [Q] Quality Check 后，验证测试 4/4 通过（代码运行 ✅、commit 审查 ✅、卫生检查 ✅ 发现 20 个 .png、无限 session ✅）。但仅在手册写"必须"时执行，不会自主发起
 - **Limitation**: 163 IMAP 对新号+服务器 IP 风控严格，短期无法解除
 - **Limitation**: 模型端点（right.codes）不稳定时 agent 完全瘫痪，无降级机制
 

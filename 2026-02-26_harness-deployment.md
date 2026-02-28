@@ -85,6 +85,7 @@ MDIE 命令验证结果（全部通过）：
 - [ ] HEARTBEAT 驱动：Harness 运行中 Jonathan 被 HEARTBEAT 唤醒并自动监控（D5 期间 2 次 HEARTBEAT 正确返回 HEARTBEAT_OK，但当时无 Harness 运行）
 - [x] 完整闭环：壮爸提需求 → spec → Harness → MDIE → coding 完成 → 汇报 ✅ D5（guess-number 项目，11/12 Done）
 - [x] Coding session 质量：验证 Harness 编码阶段产出的代码是否可用 ✅ D5（main.py 功能完整、结构清晰、9 个 commit）
+- [x] MDIE [Q] Quality Check：Jonathan 收到质量检查指令后自主执行 4/4 项检查 ✅（2/28 验证，发现 20 个 .png 散落、代码 EOF 容错不足、commit 无 regression、tmux 已停）
 
 ## 手册修复记录 (2/28)
 

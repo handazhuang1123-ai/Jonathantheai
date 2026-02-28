@@ -66,4 +66,4 @@ YYYY-MM-DD_topic-name.md
 - [可变] 待验证：HEARTBEAT 自动驱动 MDIE（Harness 运行中被 HEARTBEAT 唤醒并自动监控）
 - [可变] 待操作：邮件 Telegram 摘要推送开启 + POP3 bug fix commit + 发测试邮件验证增量
 - [可变] workspace 手册全面修复（2/28）：PLAYBOOK 加 spec 确认、MDIE 加 sleep 30s 上限+汇报触发+超时预警、HEARTBEAT 直接指向 MDIE
-- [可变] 质量监控修复（2/28）：MDIE 加 [Q] Quality Check（代码运行+commit 审查+卫生+无限 session）、coding_prompt 加卫生规则、MEMORY 加质量经验
+- [可变] 质量监控修复（2/28）：MDIE 加 [Q] Quality Check（代码运行+commit 审查+卫生+无限 session）、coding_prompt 加卫生规则、MEMORY 加质量经验。**验证通过 4/4**（Jonathan 自主发现 20 个 .png 散落）
