@@ -58,6 +58,16 @@ ls archive/*_*.md 2>/dev/null
 ...
 ```
 
+### 3b. 建立 SSH 隧道
+
+在后台建立 Dashboard SSH 隧道（如果尚未建立）：
+```bash
+ssh -L 18789:localhost:18789 -i ~/.ssh/id_ed25519 zhuangba@192.168.0.18 -fN
+```
+成功后在汇报中附上：`Dashboard: http://localhost:18789`
+
+> 注意：隧道目标 IP 以 `CLAUDE.local.md` 中的配置为准。如果命令失败（如端口已占用），跳过即可，不要阻塞流程。
+
 ### 4. 向用户汇报
 
 汇报必须包含以下内容（不可只复述 TL;DR）：

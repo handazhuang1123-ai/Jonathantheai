@@ -1,7 +1,7 @@
 ---
 title: Jonathan Capability Evaluation
 date: 2026-02-25
-last_updated: 2026-02-28
+last_updated: 2026-03-01
 tags: [evaluation, agent, capability, memory, behavior, methodology]
 depends_on: [2026-02-25_token-analysis.md]
 status: current
@@ -100,7 +100,7 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 - **Can**: 非 Harness 场景自主代码审查（calculator 测试：发现乘法回归 bug 并独立修复）
 - **Can（条件性）**: 质量检查 — MDIE.md 加 [Q] Quality Check 后，手动触发 4/4 通过；HEARTBEAT 自动触发 3/5（发现 crash ✅，但卫生漏检 ❌ + 未干预 ❌，已二次修复 MDIE.md）。仅在手册写"必须"时执行
 - **Limitation**: 163 IMAP 对新号+服务器 IP 风控严格，短期无法解除
-- **Limitation**: 模型端点（right.codes）不稳定时 agent 完全瘫痪，无降级机制
+- **Can**: 模型 fallback 自动切换 — right.codes 不可用时自动降级到 MiniMax M2.5（3/1 配置，端到端验证通过）
 
 ---
 
@@ -108,12 +108,12 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 
 | # | 问题 | 发现日期 | 状态 |
 |---|------|----------|------|
-| 1 | Telegram Bot token 需轮换 | 2/24 | 未处理 |
+| 1 | ~~Telegram Bot token 需轮换~~ | 2/24 | 不处理（壮爸决定 3/1）|
 | 3 | message 工具参数兼容问题 | 2/25 | ⚠️ D4 回归 9 次 |
 | 4 | workspace 多个核心文件 untracked | 2/25 | 未处理（持续 5 天）|
 | 5 | SSH 绑定 0.0.0.0 + 无防火墙 | 2/24 | 未处理 |
 | 6 | browser 工具超时导致 Gateway 崩溃 | 2/26 | 未处理 |
-| 12 | right.codes 502 | 2/27 | D4: 76 次/天；D5: ~1h 连续 502 |
+| 12 | right.codes 不稳定（502 + 余额耗尽）| 2/27 | ✅ 已配置 MiniMax M2.5 fallback（3/1），端到端验证通过 |
 | 15 | sleep 无上限递增致 600s 超时 | 2/28 | ✅ 已在 MDIE.md 写死 30s 上限 |
 | 16 | 质量监控完全空白 | 2/28 | ✅ 已在 MDIE.md 加 [Q] Quality Check + coding_prompt 加卫生规则 |
 | 17 | HEARTBEAT 质量检查：卫生缓存 + 未干预 | 2/28 | ✅ 已修复 MDIE.md（必须重新执行 + 必须立即 L1 干预）|
@@ -124,8 +124,8 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 
 1. ~~**MDIE.md 写死 sleep 上限 30s + 汇报触发条件**~~ — ✅ 已完成 (2/28)
 1b. **MDIE.md [Q] Quality Check 段落** — ✅ 已完成 (2/28)，含代码可运行性、commit 审查、卫生检查、无限 session 检测
-2. **监控 right.codes 可用性** — D4-D5 持续不稳定，需告警或备用端点
-3. **轮换 Bot token** — 已知泄露
+2. ~~**监控 right.codes 可用性**~~ — ✅ 已配置 MiniMax M2.5 fallback + 用量日报 (3/1)
+3. ~~**轮换 Bot token**~~ — 不处理（壮爸决定 3/1）
 4. **方案预研机制** — 推荐服务前先验证限制条件
 5. **邮件 Telegram 摘要推送** — config 中开启 + 配 cron
 6. **提交 POP3 bug fix** — mail_assistant.py:372 已改未 commit

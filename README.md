@@ -1,7 +1,7 @@
 ---
 title: OpenClaw Jonathantheai - Memory Index
 created: 2026-02-24
-last_updated: 2026-02-28
+last_updated: 2026-03-01
 owner: zhuangba (壮爸)
 purpose: Context transfer for new Claude sessions about Jonathan (OpenClaw agent)
 ---
@@ -36,6 +36,7 @@ Jonathan 是一个 OpenClaw agent，通过 Telegram Bot 与用户交互，运行
 | `docs/*_agent-swarm-analysis.md` | Agent Swarm 架构深度分析（Elvis 模式、技术路线、分阶段方案） | 涉及多 agent 编排架构设计时 |
 | `docs/*_harness-integration-insights.md` | Harness 集成洞察（Harness 如何替代 Claude Code CLI、架构变革） | 涉及 Harness 与 Jonathan 集成方案时（依赖上一条） |
 | `docs/*_harness-build-plan.md` | **构建计划（主文档）**：部署步骤、MDIE 循环、app_spec 最佳实践、动态 Prompt | 需要在 Jonathan 服务器上构建 Harness 系统时（自包含，可独立阅读） |
+| `docs/*_dissertation-harness-plan.md` | **论文流水线方案**：Harness 架构泛化为研究写作流水线（文献扫描→精读→起草→审查），含最佳实践和实施路线 | 涉及用 Harness 辅助博士论文研究写作时 |
 
 ## 文件命名规范
 
@@ -57,8 +58,9 @@ YYYY-MM-DD_topic-name.md
 - [可变] 服务器监控系统已部署（~/monitor/，cron 每天 08:00），推送已修复（D4，PATH 兜底）
 - [可变] mail-assistant 已切换到 163 POP3 收件（IMAP 被风控拦截），fetch+分类+入库验证通过
 - [可变] Proton Bridge keychain 已修复（D4），但邮件方案已改用 163，Bridge 暂不使用
-- [可变] Telegram Bot token 已泄露，需轮换
-- [可变] right.codes 模型端点不稳定（76x 502/天），heartbeat 空转，需监控或备用方案
+- [固定] Telegram Bot token 泄露问题 — 不处理（壮爸决定）
+- [可变] right.codes 余额耗尽（3/1 403），MiniMax fallback 实战验证通过（cooldown 机制自动跳过失败 provider），充值后自动恢复主模型
+- [可变] MiniMax 用量监控已部署（~/monitor/token-usage-report.sh，cron 每天 08:05 推送 Telegram 日报 + 套餐推荐）
 - [可变] 壮爸侧 `.claude/rules/` 模块化规则 + `CLAUDE.local.md` 自动加载已启用（2/27 验证通过）
 - [可变] Harness 已部署到服务器（~/projects/harness-openai/），端到端测试通过
 - [可变] HEARTBEAT 已配置 MDIE 循环（每 30 分钟），但 D4 因 502 全部空转
@@ -67,3 +69,5 @@ YYYY-MM-DD_topic-name.md
 - [可变] 待操作：邮件 Telegram 摘要推送开启 + POP3 bug fix commit + 发测试邮件验证增量
 - [可变] workspace 手册全面修复（2/28）：PLAYBOOK 加 spec 确认、MDIE 加 sleep 30s 上限+汇报触发+超时预警、HEARTBEAT 直接指向 MDIE
 - [可变] 质量监控修复（2/28）：MDIE 加 [Q] Quality Check + coding_prompt 加卫生规则。手动触发 4/4 通过；HEARTBEAT 触发 3/5（卫生缓存+未干预）。**二次修复**：必须重新执行命令 + crash 后必须 L1 干预
+- [可变] Oura Ring 健康数据接入（3/1）：OAuth2 认证通过，~/monitor/oura-sync.py cron 每天 08:10 同步睡眠/恢复/活动/血氧/压力到 ~/.oura/data/，Telegram 日报推送已验证，Jonathan workspace 已感知
+- [可变] Gateway 自杀事件（3/1）：MiniMax 驱动的 Jonathan 建议执行 gateway stop 导致死循环。修复：归档有毒 session + workspace 第 9 条禁止建议停止自身 gateway

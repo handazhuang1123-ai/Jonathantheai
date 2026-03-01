@@ -3,10 +3,10 @@ title: OpenClaw Jonathan Setup Summary
 date: 2026-02-24
 session_time: "17:00 - 22:30 CST"
 author: Claude Opus 4.6 (assisting zhuangba)
-tags: [openclaw, setup, installation, onboarding]
+tags: [openclaw, setup, installation, onboarding, oura]
 depends_on: []
 status: current
-last_updated: 2026-02-27
+last_updated: 2026-03-01
 ---
 
 # OpenClaw Setup Summary - 2026-02-24
@@ -32,12 +32,25 @@ last_updated: 2026-02-27
 - **Runtime**: Node (recommended)
 
 ### 3. Model Provider
+
+**主模型**：
 - **Provider type**: Custom (OpenAI-compatible endpoint)
 - **Endpoint ID**: `custom-right-codes`
 - **Base URL**: `https://right.codes/codex/v1`
 - **Model**: `gpt-5.3-codex-high`
-- **Context window**: Set to 1,000,000 (was initially 4096, too small)
+- **Context window**: 1,000,000
 - **Max tokens**: 32,768
+
+**Fallback 模型（3/1 新增）**：
+- **Provider**: `minimax`
+- **API**: `anthropic-messages`（必须用此模式，openai-completions 模式下 thinking 标签会导致空 tool_call_id 400 错误）
+- **Base URL**: `https://api.minimax.io/anthropic`（国际站，需走 mihomo 代理）
+- **Model**: `MiniMax-M2.5`（旗舰，SWE-Bench 80.2%）
+- **Context window**: 1,000,000
+- **Max tokens**: 131,072
+- **计费**: 按量付费，$0.30/$1.20 per M tokens (input/output)
+- **Fallback 逻辑**: right.codes 返回错误时自动切换（403/401→"auth" reason、5xx→"timeout" reason 均触发）
+- **验证（3/1）**: right.codes 403 余额不足 → cooldown 机制跳过 → MiniMax 接管，Jonathan 正常回复
 
 ### 4. Channel
 - **Platform**: Telegram Bot API
@@ -75,6 +88,7 @@ last_updated: 2026-02-27
 3. **Health check failed on LAN bind** → Changed to loopback, access via SSH tunnel
 4. **Git commit failed (no user info)** → Configured git global user
 5. **noVNC for remote viewing** → Installed and configured on port 6080
+6. **Gateway 自杀事件（3/1）** → right.codes 余额耗尽后，MiniMax 驱动的 Jonathan 建议执行 `openclaw gateway stop`，导致 gateway 停止；旧 session 恢复后继续执行 gateway 命令形成死循环。修复：归档有毒 session + workspace MEMORY.md 第 9 条禁止建议停止自身 gateway
 
 ### 7. Harness (Autonomous Coding Agent)
 - **Install path**: `~/projects/harness-openai/`
@@ -82,6 +96,15 @@ last_updated: 2026-02-27
 - **Operation manual**: `~/.openclaw/workspace/` 下 PLAYBOOK.md（入口）+ APP_SPEC_GUIDE.md + MDIE.md
 - **Python venv**: `~/projects/harness-openai/venv/` (aiohttp + playwright)
 - **Details**: See `2026-02-26_harness-deployment.md`
+
+### 8. Oura Ring Integration（健康数据）
+- **认证**: OAuth2（PAT 已被 Oura 废弃），Client ID `503e9756-b9a7-45c0-9d2e-3b80d8b8a5ad`
+- **Token 存储**: `~/.oura/credentials.json`（access_token 30 天有效，脚本自动 refresh）
+- **同步脚本**: `~/monitor/oura-sync.py`（cron 每天 08:10）
+- **数据存储**: `~/.oura/data/YYYY-MM-DD.json`（含 daily_sleep, daily_readiness, daily_activity, daily_spo2, daily_stress, heartrate, sleep）
+- **Telegram 推送**: 通过 `~/monitor/alert.sh` 发送健康日报（睡眠/恢复/活动/血氧/压力 + 异常预警）
+- **Jonathan 感知**: workspace `MEMORY.md` 第 8 条，渐进式披露（用户问健康问题时读 ~/.oura/data/）
+- **会员要求**: Ring 4 必须有 Oura Membership 才能使用 API
 
 ## External Monitoring Interface（壮爸 → Jonathan 的观测接口）
 
@@ -99,8 +122,10 @@ last_updated: 2026-02-27
 - 服务日志：`journalctl --user -u openclaw-gateway --since today`
 - workspace：`~/.openclaw/workspace/`（含 MEMORY.md、memory/、git 历史）
 - 监控报告：`~/monitor/reports/`
+- MiniMax 用量日报：`~/monitor/token-usage-report.sh`（cron 每天 08:05，推送 Telegram）
 - Harness 操作手册：`~/.openclaw/workspace/`（PLAYBOOK.md + APP_SPEC_GUIDE.md + MDIE.md）
 - Harness 项目产出：`~/projects/{project}/.issue_store/issues.json`
+- Oura 健康数据：`~/.oura/data/YYYY-MM-DD.json`（cron 每天 08:10 同步）
 
 > 注意：局域网 IP 由 DHCP 分配，重启后可能变动。如网络环境变化，需先确认 IP 或改用 Tailscale。
 

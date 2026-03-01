@@ -105,6 +105,18 @@ ls archive/*_*.md 2>/dev/null
 
 不要为了改而改，但必须展示"读过 → 比对过 → 决定不改"的完整过程。
 
+#### .claude/rules/（规则层）和 CLAUDE.local.md（本地配置层）
+
+这些文件每次 session 自动加载到 system prompt，变更影响所有未来对话。
+
+1. 判断本次变更是否涉及以下任一类别：
+   - 操作流程或命令变化 → 检查 `.claude/rules/jonathan-ops.md`
+   - 记忆格式或容量规范变化 → 检查 `.claude/rules/memory-format.md`
+   - 敏感文件处理规则变化 → 检查 `.claude/rules/sensitive.md`
+   - 服务器连接信息变化（IP、端口、SSH 配置） → 检查 `CLAUDE.local.md`
+2. 如涉及，读取对应文件，判断是否需要同步更新
+3. 如不涉及，明确说明"本次变更不涉及规则层和本地配置层"，跳过
+
 ### 4. 文件增长控制
 
 **每次执行必须检查**：
