@@ -4,7 +4,7 @@ date: 2026-02-25
 tags: [tokens, cost, performance, optimization]
 depends_on: [2026-02-24_setup-summary.md]
 status: current
-last_updated: 2026-02-27
+last_updated: 2026-03-02
 supersedes: archive/2026-02-24_token-analysis.md
 ---
 
@@ -73,6 +73,18 @@ Day 1 用户实际输入约 52 tokens，消耗 326,600 tokens，**放大比 1:6,
 | 5 | "确认命令生效了吗？" | 68.3K | 5 | 自我调试 DISPLAY |
 | 6 | "记下来了吗？" | 87.2K | 6 | 最高单次 input（14.5K/call） |
 
+## MiniMax 计费发现（D7, 3/2）
+
+本地 token-usage-report.sh 估算 $0.05，实际 MiniMax 账户消费 $1.70。差异原因：
+1. **JSONL 不记录 reasoning tokens** — MiniMax M2.5 是推理模型，即使 reasoning:false 也会产生隐藏 thinking tokens，按 output 价计费但不在 JSONL 中体现
+2. **本地估算不可靠** — 缺少 reasoning tokens 数据，任何本地计算都会严重低估
+
+**解决方案：余额手动汇报制**
+- 壮爸在对话中告知 MiniMax 当前余额 → Jonathan 写入 `memory/minimax-balance.json`
+- `~/monitor/balance_query.py` 读取余额记录，计算消费差值
+- `token-usage-report.sh` 集成余额查询结果 + disclaimer（"MiniMax 消费为余额差值估算"）
+- 无 MiniMax 余额查询 API，只能通过后台手动查看
+
 ## Key Insights（累计）
 
 1. **多步工具调用是主要成本** — 每次调用重发完整上下文
@@ -80,6 +92,7 @@ Day 1 用户实际输入约 52 tokens，消耗 326,600 tokens，**放大比 1:6,
 3. **避免 Gateway 重启** — 会导致 cache 失效
 4. **长对话不一定更贵** — 如果 cache 命中率高，甚至更省
 5. **错误会浪费 token** — 40 次无效 message 调用消耗了不必要的资源
+6. **MiniMax 本地估算不可靠** — reasoning tokens 不记录在 JSONL，用余额差值追踪（D7）
 
 ## Optimization Suggestions
 

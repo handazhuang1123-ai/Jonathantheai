@@ -1,7 +1,8 @@
 ---
 title: Harness 部署记录
 date: 2026-02-26
-last_updated: 2026-02-28
+last_updated: 2026-03-02
+# third update 3/2: Docker 沙盒部署
 # second update 2/28: HEARTBEAT验证+二次修复
 tags: [harness, deployment, mdie, monitoring]
 depends_on: [2026-02-24_setup-summary.md]
@@ -12,18 +13,30 @@ status: current
 
 ## 部署概要
 
-Harness（自动化编码 agent）已部署到 Jonathan 服务器，Jonathan 现在可以编排 Harness 来开发完整项目。
+Harness（自动化编码 agent）已部署到 Jonathan 服务器，**3/2 起在 Docker 容器中运行**（文件系统隔离）。
 
 | 项目 | 值 |
 |------|-----|
 | **安装路径** | ~/projects/harness-openai/ |
-| **Python venv** | ~/projects/harness-openai/venv/ |
-| **依赖** | aiohttp 3.13.3, playwright 1.58.0 |
-| **启动脚本** | ~/projects/harness-openai/run_harness.sh |
-| **操作手册** | ~/.openclaw/workspace/ 下三个文件：PLAYBOOK.md（入口）、APP_SPEC_GUIDE.md（写 spec）、MDIE.md（监控循环） |
+| **运行方式** | Docker 容器（harness-sandbox 镜像，495MB） |
+| **启动脚本** | ~/projects/harness-openai/run_harness.sh（Docker 封装版，原版 .bak 备份） |
+| **操作手册** | ~/.openclaw/workspace/：PLAYBOOK.md（入口）、APP_SPEC_GUIDE.md（写 spec）、MDIE.md（监控循环） |
 | **入口** | autonomous_agent_demo.py |
 
-## 环境变量 (.env)
+### Docker 沙盒 (3/2)
+
+容器挂载：`/harness` ← harness 代码（rw）、`/project` ← 目标项目（rw）、`/tmp` ← tmpfs 512MB。
+容器不可见：~/.ssh、~/.openclaw、~/monitor、~/.oura、其他项目。
+资源限制：2GB/2CPU（并发时 1.5GB/1.5CPU）、256 PIDs、`--security-opt no-new-privileges`。
+
+关键文件：Dockerfile、docker-build.sh、.env.docker（从 .env 复制，.gitignore 已排除）。
+日志路径修复：agent.py `project_dir.parent` → `Path("/harness/generations")`（避免写到容器内部丢失）。
+Docker daemon 代理：`/etc/systemd/system/docker.service.d/proxy.conf`（大陆镜像加速源不可用，走 mihomo）。
+构建命令：`docker build --network host --build-arg HTTP_PROXY=http://127.0.0.1:7890 --build-arg HTTPS_PROXY=http://127.0.0.1:7890 --tag harness-sandbox:latest .`
+MDIE 零修改：tmux 包的是 docker run 前台进程，bind mount 双向可见，所有监控命令不变。
+Jonathan workspace MEMORY.md 第 11 条已加。回滚：`cp run_harness.sh.bak run_harness.sh`。
+
+## 环境变量 (.env.docker)
 
 | 变量 | 值 |
 |------|-----|
@@ -32,10 +45,13 @@ Harness（自动化编码 agent）已部署到 Jonathan 服务器，Jonathan 现
 | BROWSER_HEADLESS | true |
 | LOG_NATURAL_ONLY | true |
 
+> Docker 版使用 .env.docker（`--env-file`），代理地址 127.0.0.1:7890 通过 `--network host` 直通。
+
 ## 代码修改
 
 1. **client.py L141**: `aiohttp.ClientSession(trust_env=True)` — 使 API 调用走 mihomo 代理
 2. **initializer_prompt.md**: issue 数量从固定 100 改为按项目复杂度自适应（简单 5-15，中等 30-60，复杂 60-100）
+3. **agent.py L565**: 日志路径修复 — Docker 环境下写到 `/harness/generations/`（非 Docker 保持原逻辑）
 
 ## 渐进式披露设计
 
@@ -119,3 +135,13 @@ MDIE 命令验证结果（全部通过）：
 - 根因：HEARTBEAT 实弹测试中 Jonathan 发现 crash 只汇报不干预 + 卫生检查用旧缓存报"0"（实际 11 个）
 - todo-cli 测试项目（~/projects/todo-cli/）已停止（Done=5/30），可清理
 - initializer 对 todo-cli 创建 30 issues（偏多），自适应上限仍需调优
+
+**D6 手册优化 (3/1)**：
+- PLAYBOOK.md 新增"Git 提交规范"段落（每 commit 单一改动、message 与内容一致、先 diff --staged、禁止 git add .）
+- HEARTBEAT.md 新增"Daily Memory 检查"段落（检测最新 daily 日期，繁忙日必须创建）
+- 起因：D6 评估发现 git 规范退化（2/3 commit 有问题）+ 2/28-3/1 零 daily memory
+
+**D7 HEARTBEAT 修复 (3/2)**：
+- HEARTBEAT.md 新增"重复告警抑制"段落：`memory/harness-alert-count.txt` 计数 ≥3 → 不再发送，回复 HEARTBEAT_OK；壮爸说"harness 开启"时重置计数
+- 起因：D7 评估发现 HEARTBEAT 机械重复相同告警 12+ 小时（harness 未运行期间）
+- 告警中断事件：3/2 08:00~09:57（~2h），cron 在旧 gateway（v2026.2.23）下运行失败（不支持 secrets config 格式），gateway 09:57 重启后恢复，12 条积压消息自动投递

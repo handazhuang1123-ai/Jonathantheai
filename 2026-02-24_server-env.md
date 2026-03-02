@@ -4,7 +4,7 @@ date: 2026-02-24
 tags: [server, hardware, network, proxy, mihomo, tailscale]
 depends_on: []
 status: current
-last_updated: 2026-02-24
+last_updated: 2026-03-02
 ---
 
 # Server Environment - zhuangbaopenclaw
@@ -56,6 +56,7 @@ Environment="NO_PROXY=localhost,127.0.0.1,192.168.0.0/16"
 |---------|------|------|-----------|
 | mihomo | system | 7890 | yes |
 | openclaw-gateway | user | 18789 | yes (lingering) |
+| Docker CE | system | - | yes |
 | TigerVNC :1 | user | 5901 | yes |
 | noVNC/websockify | user | 6080 | yes (lingering) |
 | XFCE4 desktop | user | - | via VNC |

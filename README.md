@@ -1,7 +1,7 @@
 ---
 title: OpenClaw Jonathantheai - Memory Index
 created: 2026-02-24
-last_updated: 2026-03-01
+last_updated: 2026-03-02
 owner: zhuangba (壮爸)
 purpose: Context transfer for new Claude sessions about Jonathan (OpenClaw agent)
 ---
@@ -52,7 +52,7 @@ YYYY-MM-DD_topic-name.md
 - [可变] 服务器: 192.168.0.18 (LAN) / 100.79.146.9 (Tailscale)
 - [可变] 代理: mihomo 端口 7890，自启动
 - [可变] Gateway: 端口 18789，仅 loopback，通过 SSH 隧道访问
-- [可变] Jonathan 综合评分 7/10（D1-D3 持平），D4 待正式打分，D5 监控层测试通过
+- [可变] Jonathan 综合评分 5/10（D7 ↓↓），D7 根因：两个 provider reasoning:false 导致 MiniMax 指令遵循退化。已修复：reasoning:true + HEARTBEAT 重复抑制
 - [固定] 首次会话消耗 326.6K tokens / 6 条用户消息
 - [可变] D4 错误：76x HTTP 502（模型端点不稳定）+ 9x message 参数回归 + 2x 对话卡死
 - [可变] 服务器监控系统已部署（~/monitor/，cron 每天 08:00），推送已修复（D4，PATH 兜底）
@@ -60,14 +60,19 @@ YYYY-MM-DD_topic-name.md
 - [可变] Proton Bridge keychain 已修复（D4），但邮件方案已改用 163，Bridge 暂不使用
 - [固定] Telegram Bot token 泄露问题 — 不处理（壮爸决定）
 - [可变] right.codes 余额耗尽（3/1 403），MiniMax fallback 实战验证通过（cooldown 机制自动跳过失败 provider），充值后自动恢复主模型
-- [可变] MiniMax 用量监控已部署（~/monitor/token-usage-report.sh，cron 每天 08:05 推送 Telegram 日报 + 套餐推荐）
+- [可变] MiniMax 用量：本地估算不可靠（reasoning tokens 不记录在 JSONL），改为余额手动汇报制（壮爸告知→Jonathan 记录→日报展示差值）
+- [可变] OpenClaw v2026.2.26 升级（3/2）：External Secrets 已激活，两个 provider reasoning:true，x-tweet-fetcher skill 已注册
+- [可变] Gateway 重启必须由外部执行（壮爸手动 systemctl restart），Jonathan 无法安全重启自己的 gateway
+- [可变] HEARTBEAT 重复告警抑制已加（3/2）：≥3 次相同告警 → 停止，壮爸说"harness 开启"时重置
 - [可变] 壮爸侧 `.claude/rules/` 模块化规则 + `CLAUDE.local.md` 自动加载已启用（2/27 验证通过）
-- [可变] Harness 已部署到服务器（~/projects/harness-openai/），端到端测试通过
+- [可变] Harness 已部署到服务器（~/projects/harness-openai/），3/2 起 Docker 沙盒运行（文件系统隔离，MDIE 零修改）
 - [可变] HEARTBEAT 已配置 MDIE 循环（每 30 分钟），但 D4 因 502 全部空转
 - [可变] D5 已验证：Telegram 实弹测试 ✅、Harness 编排流程 ✅、MDIE 精确监控 ✅（修复 PLAYBOOK 后）、完整闭环 ✅（guess-number 11/12 Done）、coding 质量 ✅（9 commit，代码清晰）
 - [可变] HEARTBEAT 自动驱动 MDIE 已验证（2/28，todo-cli 测试，评分 3/5：发现 crash ✅，卫生漏检 ❌，未干预 ❌，已二次修复 MDIE.md）
-- [可变] 待操作：邮件 Telegram 摘要推送开启 + POP3 bug fix commit + 发测试邮件验证增量
+- [可变] 邮件三连已完成（3/1）：POP3 bug fix ✅ + Telegram 推送已开启 ✅ + full body storage 已加 ✅
 - [可变] workspace 手册全面修复（2/28）：PLAYBOOK 加 spec 确认、MDIE 加 sleep 30s 上限+汇报触发+超时预警、HEARTBEAT 直接指向 MDIE
 - [可变] 质量监控修复（2/28）：MDIE 加 [Q] Quality Check + coding_prompt 加卫生规则。手动触发 4/4 通过；HEARTBEAT 触发 3/5（卫生缓存+未干预）。**二次修复**：必须重新执行命令 + crash 后必须 L1 干预
 - [可变] Oura Ring 健康数据接入（3/1）：OAuth2 认证通过，~/monitor/oura-sync.py cron 每天 08:10 同步睡眠/恢复/活动/血氧/压力到 ~/.oura/data/，Telegram 日报推送已验证，Jonathan workspace 已感知
 - [可变] Gateway 自杀事件（3/1）：MiniMax 驱动的 Jonathan 建议执行 gateway stop 导致死循环。修复：归档有毒 session + workspace 第 9 条禁止建议停止自身 gateway
+- [可变] D6 workspace 优化（3/1）：PLAYBOOK 加 Git 提交规范、HEARTBEAT 加 daily memory 检查。待验证：git 规范 + daily memory 生成
+- [可变] minimax cost 配置已删除（3/2），成本用余额手动汇报制；custom-minimax 历史遗留已确认清理完毕

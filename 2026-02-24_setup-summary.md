@@ -6,7 +6,7 @@ author: Claude Opus 4.6 (assisting zhuangba)
 tags: [openclaw, setup, installation, onboarding, oura]
 depends_on: []
 status: current
-last_updated: 2026-03-01
+last_updated: 2026-03-02
 ---
 
 # OpenClaw Setup Summary - 2026-02-24
@@ -14,7 +14,7 @@ last_updated: 2026-03-01
 ## What Was Done
 
 ### 1. OpenClaw Installation
-- **Version**: v2026.2.23
+- **Version**: v2026.2.26（3/2 升级，支持 External Secrets Management）
 - **Install method**: `curl -fsSL https://openclaw.ai/install.sh | bash`
 - **Install path**: `/home/zhuangba/.npm-global/bin/openclaw`
 - **Node.js**: v22.22.0 (pre-existing, meets Node 22+ requirement)
@@ -38,6 +38,7 @@ last_updated: 2026-03-01
 - **Endpoint ID**: `custom-right-codes`
 - **Base URL**: `https://right.codes/codex/v1`
 - **Model**: `gpt-5.3-codex-high`
+- **Reasoning**: true（3/2 开启）
 - **Context window**: 1,000,000
 - **Max tokens**: 32,768
 
@@ -48,9 +49,11 @@ last_updated: 2026-03-01
 - **Model**: `MiniMax-M2.5`（旗舰，SWE-Bench 80.2%）
 - **Context window**: 1,000,000
 - **Max tokens**: 131,072
-- **计费**: 按量付费，$0.30/$1.20 per M tokens (input/output)
+- **Reasoning**: true（3/2 开启，MiniMax M2.5 本身是推理模型，开启后 extended thinking 效果更好）
+- **计费**: 按量付费。JSONL 中不记录 reasoning tokens，本地脚本无法精确估算成本，改为**余额手动汇报制**（壮爸告知余额 → Jonathan 写入 `memory/minimax-balance.json`）
 - **Fallback 逻辑**: right.codes 返回错误时自动切换（403/401→"auth" reason、5xx→"timeout" reason 均触发）
 - **验证（3/1）**: right.codes 403 余额不足 → cooldown 机制跳过 → MiniMax 接管，Jonathan 正常回复
+- **cost 配置**: 已删除（3/2），成本用余额手动汇报制，不依赖 openclaw.json cost 字段
 
 ### 4. Channel
 - **Platform**: Telegram Bot API
@@ -88,16 +91,21 @@ last_updated: 2026-03-01
 3. **Health check failed on LAN bind** → Changed to loopback, access via SSH tunnel
 4. **Git commit failed (no user info)** → Configured git global user
 5. **noVNC for remote viewing** → Installed and configured on port 6080
-6. **Gateway 自杀事件（3/1）** → right.codes 余额耗尽后，MiniMax 驱动的 Jonathan 建议执行 `openclaw gateway stop`，导致 gateway 停止；旧 session 恢复后继续执行 gateway 命令形成死循环。修复：归档有毒 session + workspace MEMORY.md 第 9 条禁止建议停止自身 gateway
+6. **Gateway 自杀事件（3/1）** → right.codes 余额耗尽后，MiniMax 驱动的 Jonathan 建议执行 `openclaw gateway stop`，导致 gateway 停止；旧 session 恢复后继续执行 gateway 命令形成死循环。修复：归档有毒 session + workspace MEMORY.md 第 9 条禁止建议停止自身 gateway。**架构约束**：gateway 重启必须由外部执行（壮爸手动 `systemctl --user restart openclaw-gateway`），Jonathan 无法安全重启自己的 gateway
+7. **Secrets 激活（3/2）** → OpenClaw 2026.2.26 External Secrets Management 已启用（`openclaw secrets audit` clean，`openclaw secrets reload` 成功）
 
-### 7. Harness (Autonomous Coding Agent)
+### 7. Skills
+- **x-tweet-fetcher**: `~/.openclaw/workspace/skills/x-tweet-fetcher` → `~/projects/x-tweet-fetcher`（symlink，auto-discovered as `openclaw-workspace` source）
+- **注册方式**: workspace/skills/ 目录下创建 symlink，gateway 自动发现（无需重启）
+
+### 8. Harness (Autonomous Coding Agent)
 - **Install path**: `~/projects/harness-openai/`
 - **Wrapper script**: `~/projects/harness-openai/run_harness.sh`
 - **Operation manual**: `~/.openclaw/workspace/` 下 PLAYBOOK.md（入口）+ APP_SPEC_GUIDE.md + MDIE.md
 - **Python venv**: `~/projects/harness-openai/venv/` (aiohttp + playwright)
 - **Details**: See `2026-02-26_harness-deployment.md`
 
-### 8. Oura Ring Integration（健康数据）
+### 9. Oura Ring Integration（健康数据）
 - **认证**: OAuth2（PAT 已被 Oura 废弃），Client ID `503e9756-b9a7-45c0-9d2e-3b80d8b8a5ad`
 - **Token 存储**: `~/.oura/credentials.json`（access_token 30 天有效，脚本自动 refresh）
 - **同步脚本**: `~/monitor/oura-sync.py`（cron 每天 08:10）
@@ -122,7 +130,7 @@ last_updated: 2026-03-01
 - 服务日志：`journalctl --user -u openclaw-gateway --since today`
 - workspace：`~/.openclaw/workspace/`（含 MEMORY.md、memory/、git 历史）
 - 监控报告：`~/monitor/reports/`
-- MiniMax 用量日报：`~/monitor/token-usage-report.sh`（cron 每天 08:05，推送 Telegram）
+- MiniMax 用量日报：`~/monitor/token-usage-report.sh`（cron 每天 08:05，推送 Telegram，含余额查询 `~/monitor/balance_query.py`）
 - Harness 操作手册：`~/.openclaw/workspace/`（PLAYBOOK.md + APP_SPEC_GUIDE.md + MDIE.md）
 - Harness 项目产出：`~/projects/{project}/.issue_store/issues.json`
 - Oura 健康数据：`~/.oura/data/YYYY-MM-DD.json`（cron 每天 08:10 同步）
