@@ -63,7 +63,7 @@ YYYY-MM-DD_topic-name.md
 - [可变] MiniMax 用量：本地估算不可靠（reasoning tokens 不记录在 JSONL），改为余额手动汇报制（壮爸告知→Jonathan 记录→日报展示差值）
 - [可变] OpenClaw v2026.2.26 升级（3/2）：External Secrets 已激活，两个 provider reasoning:true，x-tweet-fetcher skill 已注册
 - [可变] Gateway 重启必须由外部执行（壮爸手动 systemctl restart），Jonathan 无法安全重启自己的 gateway
-- [可变] HEARTBEAT 重复告警抑制已加（3/2）：≥3 次相同告警 → 停止，壮爸说"harness 开启"时重置
+- [可变] HEARTBEAT v4 全面修复（3/2）：Telegram 发送修复 + per-project 告警抑制（JSON） + 显式项目注册 + META 排除 + 完成自动清除。Docker 端到端验证通过（docker-test 4/4 Done）
 - [可变] 壮爸侧 `.claude/rules/` 模块化规则 + `CLAUDE.local.md` 自动加载已启用（2/27 验证通过）
 - [可变] Harness 已部署到服务器（~/projects/harness-openai/），3/2 起 Docker 沙盒运行（文件系统隔离，MDIE 零修改）
 - [可变] HEARTBEAT 已配置 MDIE 循环（每 30 分钟），但 D4 因 502 全部空转

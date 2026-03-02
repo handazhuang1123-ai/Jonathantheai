@@ -141,7 +141,8 @@ MDIE 命令验证结果（全部通过）：
 - HEARTBEAT.md 新增"Daily Memory 检查"段落（检测最新 daily 日期，繁忙日必须创建）
 - 起因：D6 评估发现 git 规范退化（2/3 commit 有问题）+ 2/28-3/1 零 daily memory
 
-**D7 HEARTBEAT 修复 (3/2)**：
-- HEARTBEAT.md 新增"重复告警抑制"段落：`memory/harness-alert-count.txt` 计数 ≥3 → 不再发送，回复 HEARTBEAT_OK；壮爸说"harness 开启"时重置计数
-- 起因：D7 评估发现 HEARTBEAT 机械重复相同告警 12+ 小时（harness 未运行期间）
-- 告警中断事件：3/2 08:00~09:57（~2h），cron 在旧 gateway（v2026.2.23）下运行失败（不支持 secrets config 格式），gateway 09:57 重启后恢复，12 条积压消息自动投递
+**D7 HEARTBEAT 全面修复 + Docker 验证 (3/2)**：
+- HEARTBEAT.md 重写（v4）：Telegram 发送修复（message 工具 target 参数 + JSON 示例）、显式项目注册（`memory/harness-active-project.txt` 替代目录扫描）、META issue 排除（priority=0 或 title 含 META）、完成后自动清除、per-project 告警抑制（`memory/harness-alert-count.json`，≥3 次跳过）
+- 起因：D7 评估 + Docker 实测发现——机械重复告警、HEARTBEAT 回复不到 Telegram、旧项目误报、META 虚增完成率
+- 告警中断事件：3/2 08:00~09:57（~2h），cron 在旧 gateway 下运行失败，重启后恢复
+- Docker 端到端验证：docker-test 项目 4/4 Done（exit code 0），Jonathan MDIE 监控全流程正常
