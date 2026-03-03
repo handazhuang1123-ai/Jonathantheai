@@ -54,14 +54,14 @@ YYYY-MM-DD_topic-name.md
 - [可变] Gateway: 端口 18789，仅 loopback，通过 SSH 隧道访问
 - [可变] Jonathan 综合评分 7/10（D8 ↑↑），reasoning:true 修复效果显著。D8 核心交付：multi-agent 架构搭建。持续问题：message target 76 次错误、git 未提交
 - [固定] 首次会话消耗 326.6K tokens / 6 条用户消息
-- [可变] D4 错误：76x HTTP 502（模型端点不稳定）+ 9x message 参数回归 + 2x 对话卡死
+- [可变] D9 错误：71x message target 参数错误（Open Issue #3）+ 4x LLM 600s 超时 + 12x Telegram 401（短暂，已自愈）
 - [可变] 服务器监控系统已部署（~/monitor/，cron 每天 08:00），推送已修复（D4，PATH 兜底）
 - [可变] mail-assistant 已切换到 163 POP3 收件（IMAP 被风控拦截），fetch+分类+入库验证通过
 - [可变] Proton Bridge keychain 已修复（D4），但邮件方案已改用 163，Bridge 暂不使用
 - [固定] Telegram Bot token 泄露问题 — 不处理（壮爸决定）
 - [可变] right.codes 余额耗尽（3/1 403），MiniMax fallback 实战验证通过（cooldown 机制自动跳过失败 provider），充值后自动恢复主模型
 - [可变] MiniMax 用量：本地估算不可靠（reasoning tokens 不记录在 JSONL），改为余额手动汇报制（壮爸告知→Jonathan 记录→日报展示差值）
-- [可变] OpenClaw v2026.2.26 升级（3/2）：External Secrets 已激活，两个 provider reasoning:true，x-tweet-fetcher skill 已注册
+- [可变] OpenClaw v2026.3.2 升级（3/3）：installer + mihomo 代理安装，doctor 通过，gateway 已重启
 - [可变] Gateway 重启必须由外部执行（壮爸手动 systemctl restart），Jonathan 无法安全重启自己的 gateway
 - [可变] HEARTBEAT v4 全面修复（3/2）：Telegram 发送修复 + per-project 告警抑制（JSON） + 显式项目注册 + META 排除 + 完成自动清除。Docker 端到端验证通过（docker-test 4/4 Done）
 - [可变] 壮爸侧 `.claude/rules/` 模块化规则 + `CLAUDE.local.md` 自动加载已启用（2/27 验证通过）

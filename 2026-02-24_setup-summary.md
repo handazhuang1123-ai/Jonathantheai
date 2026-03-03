@@ -14,7 +14,7 @@ last_updated: 2026-03-03
 ## What Was Done
 
 ### 1. OpenClaw Installation
-- **Version**: v2026.2.26（3/2 升级，支持 External Secrets Management）
+- **Version**: v2026.3.2（3/3 升级，installer + mihomo 代理；npm 直连极慢需设 HTTP_PROXY）
 - **Install method**: `curl -fsSL https://openclaw.ai/install.sh | bash`
 - **Install path**: `/home/zhuangba/.npm-global/bin/openclaw`
 - **Node.js**: v22.22.0 (pre-existing, meets Node 22+ requirement)
