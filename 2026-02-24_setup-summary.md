@@ -6,7 +6,7 @@ author: Claude Opus 4.6 (assisting zhuangba)
 tags: [openclaw, setup, installation, onboarding, oura]
 depends_on: []
 status: current
-last_updated: 2026-03-02
+last_updated: 2026-03-03
 ---
 
 # OpenClaw Setup Summary - 2026-02-24
@@ -55,12 +55,24 @@ last_updated: 2026-03-02
 - **验证（3/1）**: right.codes 403 余额不足 → cooldown 机制跳过 → MiniMax 接管，Jonathan 正常回复
 - **cost 配置**: 已删除（3/2），成本用余额手动汇报制，不依赖 openclaw.json cost 字段
 
-### 4. Channel
-- **Platform**: Telegram Bot API
-- **Bot name**: @zhuangba_openclaw_1st_bot
-- **Display name**: Jonathan
-- **Polling mode**: enabled, running
-- **Pairing**: Approved for zhuangba's Telegram account (user ID 见 credentials.md)
+### 4. Channel & Multi-Agent 架构（3/3 新增）
+
+**四 agent 体系**（3/3 搭建，teacher 3/3 新增）：
+
+| Agent ID | 名称 | 模型 | Bot | Workspace |
+|----------|------|------|-----|-----------|
+| main | Jonathan 🤖 | gpt-5.3-codex-high | @zhuangba_openclaw_1st_bot | `~/.openclaw/workspace/` |
+| gatekeeper | 看门老大爷 🚬 | gpt-5.3-codex-medium | @kanmen_laodaye_bot | `~/.openclaw/workspace-gatekeeper/` |
+| nurse | 性感小护士 🫦 | gpt-5.3-codex-high | @sexy_hot_nurse_bot | `~/.openclaw/workspace-nurse/` |
+| teacher | 大拿 🔧 | gpt-5.3-codex-high | @teacher_dana_bot | `~/.openclaw/workspace-teacher/` |
+
+- **Polling mode**: enabled, running（四个 bot 独立轮询）
+- **Pairing**: 均已 approved for zhuangba's Telegram account
+- **Routing**: bindings 按 `channel + accountId` 路由到对应 agent
+- **IDENTITY.md**: 平台层元数据（显示名、头像），**不被 LLM 读取**。emoji 需写入 SOUL.md 才能被 LLM 使用（3/3 已修复）
+- **gatekeeper 0-token 监控**：`workspace-gatekeeper/scripts/monitor/`（collector+evaluator+dispatcher），cron 每 2 分钟采集，状态变化时才调 LLM
+- **nurse 健康职能**：Oura 同步 + 健康日报推送已从 main 迁移到 nurse
+- **teacher 教学职能**（3/3 新增）：通用教学陪跑教练，边执行边科普，记忆壮爸的学习进度。SOUL.md 定义人格+抽象意图，missions/current.md 定义具体任务（可替换）
 
 ### 5. Proxy (mihomo)
 - See `2026-02-24_server-env.md` for details
@@ -80,19 +92,18 @@ last_updated: 2026-03-02
 | OpenClaw config | `~/.openclaw/openclaw.json` |
 | Gateway service | `~/.config/systemd/user/openclaw-gateway.service` |
 | Proxy override | `~/.config/systemd/user/openclaw-gateway.service.d/proxy.conf` |
-| Workspace | `~/.openclaw/workspace/` |
-| Session data | `~/.openclaw/agents/main/sessions/` |
+| Workspace (main) | `~/.openclaw/workspace/` |
+| Workspace (gatekeeper) | `~/.openclaw/workspace-gatekeeper/` |
+| Workspace (nurse) | `~/.openclaw/workspace-nurse/` |
+| Workspace (teacher) | `~/.openclaw/workspace-teacher/` |
+| Session data | `~/.openclaw/agents/{main,gatekeeper,nurse,teacher}/sessions/` |
 | mihomo config | `/etc/mihomo/config.yaml` |
 | mihomo service | `/etc/systemd/system/mihomo.service` |
 
 ## Issues Encountered & Resolved
-1. **Context window too small (4096)** → Set to 1,000,000 in model config
-2. **Telegram API unreachable** → Installed mihomo proxy with subscription
-3. **Health check failed on LAN bind** → Changed to loopback, access via SSH tunnel
-4. **Git commit failed (no user info)** → Configured git global user
-5. **noVNC for remote viewing** → Installed and configured on port 6080
-6. **Gateway 自杀事件（3/1）** → right.codes 余额耗尽后，MiniMax 驱动的 Jonathan 建议执行 `openclaw gateway stop`，导致 gateway 停止；旧 session 恢复后继续执行 gateway 命令形成死循环。修复：归档有毒 session + workspace MEMORY.md 第 9 条禁止建议停止自身 gateway。**架构约束**：gateway 重启必须由外部执行（壮爸手动 `systemctl --user restart openclaw-gateway`），Jonathan 无法安全重启自己的 gateway
-7. **Secrets 激活（3/2）** → OpenClaw 2026.2.26 External Secrets Management 已启用（`openclaw secrets audit` clean，`openclaw secrets reload` 成功）
+1. Context window 4096→1M | 2. mihomo 代理解决 Telegram | 3. LAN→loopback | 4. git user 配置 | 5. noVNC 端口 6080
+6. **Gateway 自杀（3/1）**：agent 建议 `gateway stop` → 死循环。修复：MEMORY #9 禁令 + 架构约束（外部重启）
+7. **Secrets 激活（3/2）**：External Secrets Management 已启用
 
 ### 7. Skills
 - **x-tweet-fetcher**: `~/.openclaw/workspace/skills/x-tweet-fetcher` → `~/projects/x-tweet-fetcher`（symlink，auto-discovered as `openclaw-workspace` source）
@@ -105,14 +116,11 @@ last_updated: 2026-03-02
 - **Python venv**: `~/projects/harness-openai/venv/` (aiohttp + playwright)
 - **Details**: See `2026-02-26_harness-deployment.md`
 
-### 9. Oura Ring Integration（健康数据）
-- **认证**: OAuth2（PAT 已被 Oura 废弃），Client ID `503e9756-b9a7-45c0-9d2e-3b80d8b8a5ad`
-- **Token 存储**: `~/.oura/credentials.json`（access_token 30 天有效，脚本自动 refresh）
-- **同步脚本**: `~/monitor/oura-sync.py`（cron 每天 08:10）
-- **数据存储**: `~/.oura/data/YYYY-MM-DD.json`（含 daily_sleep, daily_readiness, daily_activity, daily_spo2, daily_stress, heartrate, sleep）
-- **Telegram 推送**: 通过 `~/monitor/alert.sh` 发送健康日报（睡眠/恢复/活动/血氧/压力 + 异常预警）
-- **Jonathan 感知**: workspace `MEMORY.md` 第 8 条，渐进式披露（用户问健康问题时读 ~/.oura/data/）
-- **会员要求**: Ring 4 必须有 Oura Membership 才能使用 API
+### 9. Oura Ring Integration（健康数据，3/3 已迁移到 nurse agent）
+- **认证**: OAuth2，Token `~/.oura/credentials.json`（30 天有效，自动 refresh）
+- **同步**: `~/monitor/oura-sync.py`（cron 08:10），数据 `~/.oura/data/YYYY-MM-DD.json`
+- **推送**: 已迁移到 nurse agent（通过 `--account nurse` 发送健康日报）
+- **感知**: main workspace MEMORY #8 + nurse workspace 专属职能
 
 ## External Monitoring Interface（壮爸 → Jonathan 的观测接口）
 
@@ -140,4 +148,6 @@ last_updated: 2026-03-02
 ## Access Methods
 - **Dashboard (via SSH tunnel)**: `ssh -L 18789:localhost:18789 zhuangba@192.168.0.18` then `http://localhost:18789/#token=...`
 - **noVNC (via SSH tunnel)**: `ssh -L 6080:localhost:6080 zhuangba@192.168.0.18` then `http://localhost:6080/vnc.html`
-- **Telegram**: Direct message @zhuangba_openclaw_1st_bot
+- **Telegram (main)**: Direct message @zhuangba_openclaw_1st_bot
+- **Telegram (gatekeeper)**: Direct message @kanmen_laodaye_bot
+- **Telegram (nurse)**: Direct message @sexy_hot_nurse_bot

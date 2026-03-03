@@ -1,7 +1,7 @@
 ---
 title: OpenClaw Jonathantheai - Memory Index
 created: 2026-02-24
-last_updated: 2026-03-02
+last_updated: 2026-03-03
 owner: zhuangba (壮爸)
 purpose: Context transfer for new Claude sessions about Jonathan (OpenClaw agent)
 ---
@@ -52,7 +52,7 @@ YYYY-MM-DD_topic-name.md
 - [可变] 服务器: 192.168.0.18 (LAN) / 100.79.146.9 (Tailscale)
 - [可变] 代理: mihomo 端口 7890，自启动
 - [可变] Gateway: 端口 18789，仅 loopback，通过 SSH 隧道访问
-- [可变] Jonathan 综合评分 5/10（D7 ↓↓），D7 根因：两个 provider reasoning:false 导致 MiniMax 指令遵循退化。已修复：reasoning:true + HEARTBEAT 重复抑制
+- [可变] Jonathan 综合评分 7/10（D8 ↑↑），reasoning:true 修复效果显著。D8 核心交付：multi-agent 架构搭建。持续问题：message target 76 次错误、git 未提交
 - [固定] 首次会话消耗 326.6K tokens / 6 条用户消息
 - [可变] D4 错误：76x HTTP 502（模型端点不稳定）+ 9x message 参数回归 + 2x 对话卡死
 - [可变] 服务器监控系统已部署（~/monitor/，cron 每天 08:00），推送已修复（D4，PATH 兜底）
@@ -76,3 +76,7 @@ YYYY-MM-DD_topic-name.md
 - [可变] Gateway 自杀事件（3/1）：MiniMax 驱动的 Jonathan 建议执行 gateway stop 导致死循环。修复：归档有毒 session + workspace 第 9 条禁止建议停止自身 gateway
 - [可变] D6 workspace 优化（3/1）：PLAYBOOK 加 Git 提交规范、HEARTBEAT 加 daily memory 检查。待验证：git 规范 + daily memory 生成
 - [可变] minimax cost 配置已删除（3/2），成本用余额手动汇报制；custom-minimax 历史遗留已确认清理完毕
+- [可变] 四 agent 体系（3/3）：main（Jonathan 🤖）+ gatekeeper（看门老大爷 🚬）+ nurse（性感小护士 🫦）+ teacher（大拿 🔧），各有独立 workspace + Telegram bot + 记忆体系
+- [可变] 大拿 🔧（teacher agent，3/3 新增）：通用教学陪跑教练，边执行边科普。SOUL 定义人格，missions/current.md 定义具体任务（可替换），MEMORY 记录壮爸学习轨迹。近期任务：demo → 上线
+- [可变] IDENTITY.md 是平台层元数据，不在 LLM 启动序列中。emoji 必须写入 SOUL.md 才能被 LLM 使用（3/3 已修复三个 agent）
+- [可变] scheduler agent 已重命名为 gatekeeper（3/3）：openclaw.json + 目录 + cron + 脚本 + bin wrapper 全部更新，gateway 已重启验证
