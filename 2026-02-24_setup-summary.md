@@ -6,7 +6,7 @@ author: Claude Opus 4.6 (assisting zhuangba)
 tags: [openclaw, setup, installation, onboarding, oura]
 depends_on: []
 status: current
-last_updated: 2026-03-03
+last_updated: 2026-03-04
 ---
 
 # OpenClaw Setup Summary - 2026-02-24
@@ -73,6 +73,7 @@ last_updated: 2026-03-03
 - **gatekeeper 0-token 监控**：`workspace-gatekeeper/scripts/monitor/`（collector+evaluator+dispatcher），cron 每 2 分钟采集，状态变化时才调 LLM
 - **nurse 健康职能**：Oura 同步 + 健康日报推送已从 main 迁移到 nurse
 - **teacher 教学职能**（3/3 新增）：通用教学陪跑教练，边执行边科普，记忆壮爸的学习进度。SOUL.md 定义人格+抽象意图，missions/current.md 定义具体任务（可替换）
+- **teacher 当前 mission（3/3 确定）**：MTG Virtual Playtable → 上线。项目源码已部署到 `~/projects/mtg-playtable/`（React+Vite+Express+Socket.IO+Prisma+Neon PostgreSQL+JWT 认证，TypeScript monorepo）。下一步：本地 `npm run dev` 验证 → 容器化 → 云部署 → 域名
 
 ### 5. Proxy (mihomo)
 - See `2026-02-24_server-env.md` for details
