@@ -6,7 +6,7 @@ author: Claude Opus 4.6 (assisting zhuangba)
 tags: [openclaw, setup, installation, onboarding, oura]
 depends_on: []
 status: current
-last_updated: 2026-03-04
+last_updated: 2026-03-07
 ---
 
 # OpenClaw Setup Summary - 2026-02-24
@@ -37,10 +37,13 @@ last_updated: 2026-03-04
 - **Provider type**: Custom (OpenAI-compatible endpoint)
 - **Endpoint ID**: `custom-right-codes`
 - **Base URL**: `https://right.codes/codex/v1`
-- **Model**: `gpt-5.3-codex-high`
+- **Model**: `gpt-5.4-high`（3/6 升级，原 gpt-5.3-codex-high）
 - **Reasoning**: true（3/2 开启）
+- **Fallback 链（3/6）**: gpt-5.4-high → gpt-5.3-codex-high → MiniMax-M2.5（三层）
+- **502 fallback 已知限制**: OpenClaw 将 502 归类为 "timeout" → 重试同 provider 不 cross-provider failover。同 provider 的两层都失败时 MiniMax 不会被触发
 - **Context window**: 1,000,000
 - **Max tokens**: 32,768
+- **Embedded run timeout**: `agents.defaults.timeoutSeconds: 1800`（3/7 修复，默认 600s 导致长任务 10 分钟中断。修改 openclaw.json → 重启 gateway 生效）
 
 **Fallback 模型（3/1 新增）**：
 - **Provider**: `minimax`
@@ -57,20 +60,34 @@ last_updated: 2026-03-04
 
 ### 4. Channel & Multi-Agent 架构（3/3 新增）
 
-**四 agent 体系**（3/3 搭建，teacher 3/3 新增）：
+**九 agent 体系**（3/3 搭建，3/6 扩展至 8 个，3/7 新增 urban-regeneration）：
 
 | Agent ID | 名称 | 模型 | Bot | Workspace |
 |----------|------|------|-----|-----------|
-| main | Jonathan 🤖 | gpt-5.3-codex-high | @zhuangba_openclaw_1st_bot | `~/.openclaw/workspace/` |
-| gatekeeper | 看门老大爷 🚬 | gpt-5.3-codex-medium | @kanmen_laodaye_bot | `~/.openclaw/workspace-gatekeeper/` |
-| nurse | 性感小护士 🫦 | gpt-5.3-codex-high | @sexy_hot_nurse_bot | `~/.openclaw/workspace-nurse/` |
-| teacher | 大拿 🔧 | gpt-5.3-codex-high | @teacher_dana_bot | `~/.openclaw/workspace-teacher/` |
+| main | Jonathan | gpt-5.4-high | @zhuangba_openclaw_1st_bot | `~/.openclaw/workspace/` |
+| gatekeeper | 看门老大爷 | gpt-5.4-high | @kanmen_laodaye_bot | `~/.openclaw/workspace-gatekeeper/` |
+| nurse | 性感小护士 | gpt-5.3-codex-medium | @sexy_hot_nurse_bot | `~/.openclaw/workspace-nurse/` |
+| teacher | 大拿 | gpt-5.4-high | @teacher_dana_bot | `~/.openclaw/workspace-teacher/` |
+| mail-assistant | 邮件助理 | gpt-5.4-high | (无独立 bot) | `~/.openclaw/workspace-mail-assistant/` |
+| naonao | 脑脑 | gpt-5.4-high | @obsidion_brainstorm_bot | `~/.openclaw/workspace-naonao/` |
+| chaige | 拆哥 | gpt-5.4-high | @idontagree_bot | `~/.openclaw/workspace-chaige/` |
+| jianjie | 建姐 | gpt-5.4-high | @listen_to_jiejie_bot | `~/.openclaw/workspace-jianjie/` |
+| urban-regeneration | 城市更新 | gpt-5.4-high | (无独立 bot) | `~/.openclaw/workspace-urban-regeneration/` |
 
-- **Polling mode**: enabled, running（四个 bot 独立轮询）
-- **Pairing**: 均已 approved for zhuangba's Telegram account
+- **Agent Registry**（3/6 新增）：结构化清单 `~/.openclaw/shared/agent-registry.json`，Jonathan 和脚本均可读取
+- **Polling mode**: enabled, running
 - **Routing**: bindings 按 `channel + accountId` 路由到对应 agent
-- **IDENTITY.md**: 平台层元数据（显示名、头像），**不被 LLM 读取**。emoji 需写入 SOUL.md 才能被 LLM 使用（3/3 已修复）
-- **gatekeeper 0-token 监控**：`workspace-gatekeeper/scripts/monitor/`（collector+evaluator+dispatcher），cron 每 2 分钟采集，状态变化时才调 LLM
+- **IDENTITY.md**: 平台层元数据（显示名、头像），不被 LLM 读取
+- **SHARED_RULES.md**（3/6 新增）：跨 agent 共享规则，源文件 `~/.openclaw/shared/SHARED_RULES.md`，各 workspace 通过 symlink 引用。git 追踪变更（Jonathan commit）
+- **Workspace 标准化（3/6）**：AGENTS.md 精简到 ~40 行，启动序列统一（SOUL→SHARED_RULES→USER→MEMORY）。USER.md 统一称呼"壮爸"。emoji 全部移除
+- **agent-create skill**（3/6 新增）：Jonathan workspace/skills/agent-create/SKILL.md，对话式创建/审计/退役 agent。已验证：邮件助理（自动创建）+ 脑脑（对话式创建）
+- **Brainstorm Storm（3/6 新增）**：群聊风暴编排器 `~/.openclaw/shared/brainstorm/brainstorm.py`，通过 LLM API 直接驱动三人讨论（Jonathan 主持 + 拆哥 + 建姐），消息发到 Telegram 群 `脑力激荡小组`。Jonathan 通过 groupSystemPrompt 触发执行。拆哥/建姐 groupPolicy=disabled（仅编排器控制发言）
+- **群聊配置发现（3/6）**：群聊 session 不注入 startup sequence（不读 SOUL/MEMORY）；groupSystemPrompt 通过 `groups.*.systemPrompt` 注入；bot 互相看不到消息（Telegram Bot API 限制）；`owner` 不是 openclaw.json 合法键
+- **Blackboard v1.0**（3/6 新增）：老大爷 weekly-memory-scan.sh 扫描所有 MEMORY.md 增量 → 写 `~/.openclaw/shared/pending-review.md` → Jonathan heartbeat 读取分析 → 推送壮爸确认。cron 每周一 09:00
+- **Evolution Protocol（3/6 新增）**：SHARED_RULES 协议14-16（自检信号/弹性容量/错误记录），8 agent 通过 symlink 自动继承。`audit-collector.sh` cron 08:30 零 token 采集 → `shared/daily-audit.txt` → 老大爷 heartbeat 审计
+- **环形监督（3/6 落地）**：Jonathan HEARTBEAT.md 新增老大爷履职审计（3 项检查）；全 agent Git 卫生检查 HEARTBEAT section
+- **Harness 职能分离（3/6）**：Jonathan 负责需求深挖+写spec+启动，老大爷通过 heartbeat 接管 MDIE 监控循环。MDIE.md 通过 symlink 共享，`shared/harness-active-project.txt` 为项目注册文件
+- **gatekeeper 职能**：0-token 状态监控（cron 每 2 分钟）+ 每日质量审计（cron 08:30）+ Harness MDIE 监控（heartbeat 30 分钟）。`workspace-gatekeeper/scripts/monitor/`（collector+evaluator+dispatcher）
 - **nurse 健康职能**：Oura 同步 + 健康日报推送已从 main 迁移到 nurse
 - **teacher 教学职能**（3/3 新增）：通用教学陪跑教练，边执行边科普，记忆壮爸的学习进度。SOUL.md 定义人格+抽象意图，missions/current.md 定义具体任务（可替换）
 - **teacher 当前 mission（3/3 确定）**：MTG Virtual Playtable → 上线。项目源码已部署到 `~/projects/mtg-playtable/`（React+Vite+Express+Socket.IO+Prisma+Neon PostgreSQL+JWT 认证，TypeScript monorepo）。下一步：本地 `npm run dev` 验证 → 容器化 → 云部署 → 域名
@@ -93,18 +110,14 @@ last_updated: 2026-03-04
 | OpenClaw config | `~/.openclaw/openclaw.json` |
 | Gateway service | `~/.config/systemd/user/openclaw-gateway.service` |
 | Proxy override | `~/.config/systemd/user/openclaw-gateway.service.d/proxy.conf` |
-| Workspace (main) | `~/.openclaw/workspace/` |
-| Workspace (gatekeeper) | `~/.openclaw/workspace-gatekeeper/` |
-| Workspace (nurse) | `~/.openclaw/workspace-nurse/` |
-| Workspace (teacher) | `~/.openclaw/workspace-teacher/` |
-| Session data | `~/.openclaw/agents/{main,gatekeeper,nurse,teacher}/sessions/` |
+| Workspaces | `~/.openclaw/workspace/`（main）, `~/.openclaw/workspace-{agent}/`（其余 7 个） |
+| Shared (rules+registry+brainstorm) | `~/.openclaw/shared/` (git tracked) |
+| Session data | `~/.openclaw/agents/{agent}/sessions/*.jsonl` |
 | mihomo config | `/etc/mihomo/config.yaml` |
 | mihomo service | `/etc/systemd/system/mihomo.service` |
 
 ## Issues Encountered & Resolved
-1. Context window 4096→1M | 2. mihomo 代理解决 Telegram | 3. LAN→loopback | 4. git user 配置 | 5. noVNC 端口 6080
-6. **Gateway 自杀（3/1）**：agent 建议 `gateway stop` → 死循环。修复：MEMORY #9 禁令 + 架构约束（外部重启）
-7. **Secrets 激活（3/2）**：External Secrets Management 已启用
+1-5: Context window/mihomo/loopback/git user/noVNC（已解决） | 6. Gateway 自杀（3/1，已修复） | 7. Secrets 已启用（3/2）
 
 ### 7. Skills
 - **x-tweet-fetcher**: `~/.openclaw/workspace/skills/x-tweet-fetcher` → `~/projects/x-tweet-fetcher`（symlink，auto-discovered as `openclaw-workspace` source）
@@ -123,32 +136,15 @@ last_updated: 2026-03-04
 - **推送**: 已迁移到 nurse agent（通过 `--account nurse` 发送健康日报）
 - **感知**: main workspace MEMORY #8 + nurse workspace 专属职能
 
-## External Monitoring Interface（壮爸 → Jonathan 的观测接口）
+## External Monitoring Interface
 
-壮爸通过 Claude Code（WSL 环境）SSH 进入 Jonathan 所在服务器来监控和评估 Jonathan。这是获取第一手数据的**唯一可靠接口**。
-
-| 项目 | 值 |
-|------|-----|
-| **连接命令** | `ssh -i ~/.ssh/id_ed25519 zhuangba@192.168.0.18` |
-| **当前网络** | 局域网直连（WSL 和服务器在同一 LAN） |
-| **备用连接** | `ssh -i ~/.ssh/id_ed25519 zhuangba@100.79.146.9`（Tailscale，跨网络时用） |
-| **可观测数据** | 会话 JSONL、systemd 日志、workspace 文件、实际产出物 |
+壮爸通过 Claude Code（WSL）SSH 进入服务器监控 Jonathan。连接信息见 `CLAUDE.local.md`。
 
 关键路径：
-- 对话记录：`~/.openclaw/agents/main/sessions/*.jsonl`
+- 对话记录：`~/.openclaw/agents/{agent}/sessions/*.jsonl`
 - 服务日志：`journalctl --user -u openclaw-gateway --since today`
-- workspace：`~/.openclaw/workspace/`（含 MEMORY.md、memory/、git 历史）
+- workspace：`~/.openclaw/workspace*/`
 - 监控报告：`~/monitor/reports/`
-- MiniMax 用量日报：`~/monitor/token-usage-report.sh`（cron 每天 08:05，推送 Telegram，含余额查询 `~/monitor/balance_query.py`）
-- Harness 操作手册：`~/.openclaw/workspace/`（PLAYBOOK.md + APP_SPEC_GUIDE.md + MDIE.md）
-- Harness 项目产出：`~/projects/{project}/.issue_store/issues.json`
-- Oura 健康数据：`~/.oura/data/YYYY-MM-DD.json`（cron 每天 08:10 同步）
-
-> 注意：局域网 IP 由 DHCP 分配，重启后可能变动。如网络环境变化，需先确认 IP 或改用 Tailscale。
-
-## Access Methods
-- **Dashboard (via SSH tunnel)**: `ssh -L 18789:localhost:18789 zhuangba@192.168.0.18` then `http://localhost:18789/#token=...`
-- **noVNC (via SSH tunnel)**: `ssh -L 6080:localhost:6080 zhuangba@192.168.0.18` then `http://localhost:6080/vnc.html`
-- **Telegram (main)**: Direct message @zhuangba_openclaw_1st_bot
-- **Telegram (gatekeeper)**: Direct message @kanmen_laodaye_bot
-- **Telegram (nurse)**: Direct message @sexy_hot_nurse_bot
+- MiniMax 用量日报：`~/monitor/token-usage-report.sh`（cron 08:05）
+- Harness 产出：`~/projects/{project}/.issue_store/issues.json`
+- Oura 健康数据：`~/.oura/data/YYYY-MM-DD.json`（cron 08:10）

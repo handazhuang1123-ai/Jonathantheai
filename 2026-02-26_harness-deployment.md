@@ -1,7 +1,8 @@
 ---
 title: Harness 部署记录
 date: 2026-02-26
-last_updated: 2026-03-02
+last_updated: 2026-03-06
+# fourth update 3/6: MDIE 监控职能分离到老大爷
 # third update 3/2: Docker 沙盒部署
 # second update 2/28: HEARTBEAT验证+二次修复
 tags: [harness, deployment, mdie, monitoring]
@@ -20,7 +21,7 @@ Harness（自动化编码 agent）已部署到 Jonathan 服务器，**3/2 起在
 | **安装路径** | ~/projects/harness-openai/ |
 | **运行方式** | Docker 容器（harness-sandbox 镜像，495MB） |
 | **启动脚本** | ~/projects/harness-openai/run_harness.sh（Docker 封装版，原版 .bak 备份） |
-| **操作手册** | ~/.openclaw/workspace/：PLAYBOOK.md（入口）、APP_SPEC_GUIDE.md（写 spec）、MDIE.md（监控循环） |
+| **操作手册** | PLAYBOOK.md + APP_SPEC_GUIDE.md（Jonathan workspace）、MDIE.md（Jonathan workspace，gatekeeper symlink 引用） |
 | **入口** | autonomous_agent_demo.py |
 
 ### Docker 沙盒 (3/2)
@@ -66,12 +67,19 @@ Jonathan workspace MEMORY.md 第 11 条已加。回滚：`cp run_harness.sh.bak 
 | **APP_SPEC_GUIDE.md** | 写 spec 指南（~100 行），按需 `cat` 读取 | 0 |
 | **MDIE.md** | 监控循环（~130 行），HEARTBEAT 触发时读取 | 0 |
 
-## MDIE 监控循环
+## MDIE 监控循环（3/6 移交老大爷）
 
-HEARTBEAT.md 已配置，heartbeat 间隔 30 分钟。逻辑：
-- 检测 `tmux list-sessions | grep harness-`
-- 有 Harness 运行 → 执行监控、判断汇报/干预
-- 无 Harness → HEARTBEAT_OK
+**职能分离（3/6）**：MDIE 监控从 Jonathan 移交给老大爷（gatekeeper）。
+- Jonathan：需求深挖 → 写 spec（含自检+3问速审）→ 启动 Harness → 注册到 `~/.openclaw/shared/harness-active-project.txt` → 任务完成
+- 老大爷：heartbeat 检测活跃项目 → 读 MDIE.md（symlink）→ 执行 MDIE 全流程 → 汇报壮爸
+- MDIE.md 源在 Jonathan workspace，老大爷通过 symlink 读取
+- `harness-alert-count.json` 在老大爷 `workspace-gatekeeper/memory/`
+
+heartbeat 间隔 30 分钟（老大爷执行）。逻辑：
+- 检测 `shared/harness-active-project.txt` 和 `tmux list-sessions | grep harness-`
+- 有 Harness 运行 → 执行 MDIE 监控（进度+质量+git）、判断汇报/干预
+- 无 Harness 但有注册项目 → 检查完成率，汇报完成或异常停止
+- 无活跃项目 → 跳过
 
 MDIE 命令验证结果（全部通过）：
 
@@ -104,42 +112,17 @@ MDIE 命令验证结果（全部通过）：
 - [x] Coding session 质量：验证 Harness 编码阶段产出的代码是否可用 ✅ D5（main.py 功能完整、结构清晰、9 个 commit）
 - [x] MDIE [Q] Quality Check：Jonathan 收到质量检查指令后自主执行 4/4 项检查 ✅（2/28 验证，发现 20 个 .png 散落、代码 EOF 容错不足、commit 无 regression、tmux 已停）
 
-## 手册修复记录 (2/28)
+## 手册修复记录
 
-**PLAYBOOK 修复**：
-- "按需加载"→"启动 Harness 后必须立即 cat MDIE.md"+ 警告不要只靠 capture-pane
-- 工作流加 spec 确认环节（壮爸批准后才启动）
-- 加项目目录规范（~/projects/，壮爸指定名称）
+**2/28 修复**（D5 实证驱动）：PLAYBOOK 加"必须立即 cat MDIE.md" + spec 确认环节。MDIE 加 sleep 上限 30s、每 3 Done 汇报、8 分钟超时。[Q] Quality Check 段落新增（代码运行/commit 审查/卫生/无限 session）。二次修复：失败必须干预 + 卫生禁复用缓存。
 
-**MDIE 修复**：
-- sleep 上限 30s + 禁止递增
-- 每 3 Done 必须汇报
-- 8 分钟超时预警（主动汇报后停止循环）
-- Done ≥ 90% + tmux 停止 → 必须立即汇报完成
-- {project} 占位符说明 + issues.json 容错
+**3/1 D6 优化**：PLAYBOOK 加 Git 提交规范，HEARTBEAT 加 Daily Memory 检查。
 
-**HEARTBEAT 修复**：
-- 路径修正（直接引用 workspace 内文件）
-- 有 Harness → 直接 cat MDIE.md（消除间接引用跳过风险）
-- 汇报逻辑统一到 MDIE.md
-
-**质量监控修复 (2/28)**：
-- MDIE.md 新增 [Q] Quality Check 段落（Monitor 后必须执行）：代码可运行性、commit 变更审查、项目卫生、无限 session 检测
-- coding_prompt.md 追加项目卫生规则（截图→screenshots/、完成后跑主入口、临时脚本用完即删）
-- MEMORY.md 追加质量检查经验条目
-- 根因同 D5 进度监控问题：MDIE 写了 Diagnose 模式但 Jonathan 从未执行（因为不是"必须"）
-
-**质量监控二次修复 (2/28)**：
-- [Q] 可运行性失败后必须立即执行 Level 1 干预（塞纸条通知编码 agent）
-- [Q] 卫生检查必须重新执行命令，禁止复用上一轮结论
-- 根因：HEARTBEAT 实弹测试中 Jonathan 发现 crash 只汇报不干预 + 卫生检查用旧缓存报"0"（实际 11 个）
-- todo-cli 测试项目（~/projects/todo-cli/）已停止（Done=5/30），可清理
-- initializer 对 todo-cli 创建 30 issues（偏多），自适应上限仍需调优
-
-**D6 手册优化 (3/1)**：
-- PLAYBOOK.md 新增"Git 提交规范"段落（每 commit 单一改动、message 与内容一致、先 diff --staged、禁止 git add .）
-- HEARTBEAT.md 新增"Daily Memory 检查"段落（检测最新 daily 日期，繁忙日必须创建）
-- 起因：D6 评估发现 git 规范退化（2/3 commit 有问题）+ 2/28-3/1 零 daily memory
+**3/6 职能分离重构**：
+- PLAYBOOK.md 重写：需求深挖清单（6项）+ spec 自检（6项）+ 3问速审 + 交接老大爷
+- Jonathan HEARTBEAT.md：移除 Harness 监控（移交老大爷），保留 daily memory + git 卫生 + SHARED_RULES 审查
+- 老大爷 HEARTBEAT.md 新建：Harness MDIE 监控 + 每日审计 + 告警抑制
+- MDIE.md symlink 到老大爷，harness-active-project.txt 移到 shared/
 
 **D7 HEARTBEAT 全面修复 + Docker 验证 (3/2)**：
 - HEARTBEAT.md 重写（v4）：Telegram 发送修复（message 工具 target 参数 + JSON 示例）、显式项目注册（`memory/harness-active-project.txt` 替代目录扫描）、META issue 排除（priority=0 或 title 含 META）、完成后自动清除、per-project 告警抑制（`memory/harness-alert-count.json`，≥3 次跳过）

@@ -1,7 +1,7 @@
 ---
 title: OpenClaw Jonathantheai - Memory Index
 created: 2026-02-24
-last_updated: 2026-03-04
+last_updated: 2026-03-07
 owner: zhuangba (壮爸)
 purpose: Context transfer for new Claude sessions about Jonathan (OpenClaw agent)
 ---
@@ -37,6 +37,7 @@ Jonathan 是一个 OpenClaw agent，通过 Telegram Bot 与用户交互，运行
 | `docs/*_harness-integration-insights.md` | Harness 集成洞察（Harness 如何替代 Claude Code CLI、架构变革） | 涉及 Harness 与 Jonathan 集成方案时（依赖上一条） |
 | `docs/*_harness-build-plan.md` | **构建计划（主文档）**：部署步骤、MDIE 循环、app_spec 最佳实践、动态 Prompt | 需要在 Jonathan 服务器上构建 Harness 系统时（自包含，可独立阅读） |
 | `docs/*_dissertation-harness-plan.md` | **论文流水线方案**：Harness 架构泛化为研究写作流水线（文献扫描→精读→起草→审查），含最佳实践和实施路线 | 涉及用 Harness 辅助博士论文研究写作时 |
+| `docs/*_evolution-protocol-verification.md` | **进化协议验证指南**：部署后检查各 agent 是否执行自检信号、弹性容量、错误记录，含一键检查脚本和行动矩阵 | 验证进化协议落地效果时（首次验证 3/9，二次 3/13） |
 
 ## 文件命名规范
 
@@ -52,9 +53,9 @@ YYYY-MM-DD_topic-name.md
 - [可变] 服务器: 192.168.0.18 (LAN) / 100.79.146.9 (Tailscale)
 - [可变] 代理: mihomo 端口 7890，自启动
 - [可变] Gateway: 端口 18789，仅 loopback，通过 SSH 隧道访问
-- [可变] Jonathan 综合评分 7/10（D9 →），Git 大幅改善（17 commits）+ 自修能力验证通过。持续问题：message target 80 次错误（跨 agent 系统性，已加 MEMORY 禁令）、teacher 记忆需强化
+- [可变] Jonathan 综合评分 7/10（D11 →），brainstorm 内容质量突破（城市更新 MVP）+ urban-regen 第 9 agent 上线。核心问题：脑暴→实操断层（讨论产出未迁移到规则库）
 - [固定] 首次会话消耗 326.6K tokens / 6 条用户消息
-- [可变] D9 错误：71x message target 参数错误（Open Issue #3）+ 4x LLM 600s 超时 + 12x Telegram 401（短暂，已自愈）
+- [可变] D11 修复：embedded run timeout 600s→1800s（长任务 10 分钟中断根因）+ HEARTBEAT CLI bypass（message 参数污染根因定位）。新发现：stale-socket 313 次/天（轻微影响）
 - [可变] 服务器监控系统已部署（~/monitor/，cron 每天 08:00），推送已修复（D4，PATH 兜底）
 - [可变] mail-assistant 已切换到 163 POP3 收件（IMAP 被风控拦截），fetch+分类+入库验证通过
 - [可变] Proton Bridge keychain 已修复（D4），但邮件方案已改用 163，Bridge 暂不使用
@@ -63,7 +64,7 @@ YYYY-MM-DD_topic-name.md
 - [可变] MiniMax 用量：本地估算不可靠（reasoning tokens 不记录在 JSONL），改为余额手动汇报制（壮爸告知→Jonathan 记录→日报展示差值）
 - [可变] OpenClaw v2026.3.2 升级（3/3）：installer + mihomo 代理安装，doctor 通过，gateway 已重启
 - [可变] Gateway 重启必须由外部执行（壮爸手动 systemctl restart），Jonathan 无法安全重启自己的 gateway
-- [可变] HEARTBEAT v4 全面修复（3/2）：Telegram 发送修复 + per-project 告警抑制（JSON） + 显式项目注册 + META 排除 + 完成自动清除。Docker 端到端验证通过（docker-test 4/4 Done）
+- [可变] HEARTBEAT v4 全面修复（3/2）+ D11 CLI bypass（3/7）：message 参数污染根因定位（LLM 填充全 schema 字段），4 agent HEARTBEAT 改用 `openclaw message send` CLI 绕过
 - [可变] 壮爸侧 `.claude/rules/` 模块化规则 + `CLAUDE.local.md` 自动加载已启用（2/27 验证通过）
 - [可变] Harness 已部署到服务器（~/projects/harness-openai/），3/2 起 Docker 沙盒运行（文件系统隔离，MDIE 零修改）
 - [可变] HEARTBEAT 已配置 MDIE 循环（每 30 分钟），但 D4 因 502 全部空转
@@ -76,8 +77,18 @@ YYYY-MM-DD_topic-name.md
 - [可变] Gateway 自杀事件（3/1）：MiniMax 驱动的 Jonathan 建议执行 gateway stop 导致死循环。修复：归档有毒 session + workspace 第 9 条禁止建议停止自身 gateway
 - [可变] D6 workspace 优化（3/1）：PLAYBOOK 加 Git 提交规范、HEARTBEAT 加 daily memory 检查。待验证：git 规范 + daily memory 生成
 - [可变] minimax cost 配置已删除（3/2），成本用余额手动汇报制；custom-minimax 历史遗留已确认清理完毕
-- [可变] 四 agent 体系（3/3）：main（Jonathan 🤖）+ gatekeeper（看门老大爷 🚬）+ nurse（性感小护士 🫦）+ teacher（大拿 🔧），各有独立 workspace + Telegram bot + 记忆体系
-- [可变] 大拿 🔧（teacher agent，3/3 新增）：通用教学陪跑教练，边执行边科普。SOUL 定义人格，missions/current.md 定义具体任务（可替换），MEMORY 记录壮爸学习轨迹
+- [可变] 九 agent 体系（3/7）：main + gatekeeper + nurse + teacher + mail-assistant + naonao + chaige + jianjie + urban-regeneration，各有独立 workspace + 记忆体系
+- [可变] SHARED_RULES.md 共享规则层（3/6）：源文件 `~/.openclaw/shared/SHARED_RULES.md`（git 追踪），各 workspace 通过 symlink 引用。Jonathan 负责维护，改一处所有 agent 生效
+- [可变] 群聊风暴（3/6）：brainstorm.py 编排器驱动三人讨论（Jonathan+拆哥+建姐），Telegram 群"脑力激荡小组"。群聊 session 不走 startup（平台限制），通过 groupSystemPrompt 注入规则
+- [可变] 环形监督（3/6 落地）：Jonathan HEARTBEAT 审计老大爷（3 项检查）；全 agent Git 卫生检查已部署
+- [可变] 模型升级 gpt-5.4-high（3/6）：除 nurse 外全员升级，三层 fallback（→gpt-5.3-codex-high→MiniMax）。502 不触发 cross-provider failover（已知限制）
+- [可变] Workspace 标准化（3/6）：AGENTS.md 精简到 ~40 行，启动序列统一 SOUL→SHARED_RULES→USER→MEMORY。USER.md 统一称呼"壮爸"。emoji 全部移除
+- [可变] agent-create skill（3/6）：Jonathan workspace/skills/agent-create/SKILL.md，对话式创建/审计/退役 agent。已验证：邮件助理 + 脑脑
+- [可变] Blackboard v1.0（3/6）：老大爷 weekly-memory-scan.sh 扫描 MEMORY.md 增量 → pending-review.md → Jonathan heartbeat 读取 → 推送壮爸
+- [可变] Agent Registry（3/6）：`~/.openclaw/shared/agent-registry.json`，结构化 agent 清单，Jonathan 和脚本均可读取
 - [可变] 大拿当前 mission（3/3 确定）：MTG Virtual Playtable → 上线。源码在 `~/projects/mtg-playtable/`（React+Express+Socket.IO+Prisma+Neon PG+JWT，TypeScript monorepo）。分支合并完成（feature/db-migration + master），typecheck/build 通过。Neon 账号是 Harness 遗留需替换。下一步：本地验证 → 容器化 → 云部署 → 域名
-- [可变] IDENTITY.md 是平台层元数据，不在 LLM 启动序列中。emoji 必须写入 SOUL.md 才能被 LLM 使用（3/3 已修复三个 agent）
+- [可变] IDENTITY.md 是平台层元数据，不在 LLM 启动序列中
 - [可变] scheduler agent 已重命名为 gatekeeper（3/3）：openclaw.json + 目录 + cron + 脚本 + bin wrapper 全部更新，gateway 已重启验证
+- [可变] Evolution Protocol 已部署（3/6）：SHARED_RULES 协议14-16（自检信号/弹性容量/错误记录），audit-collector.sh(cron 08:30) 零 token 数据采集，老大爷升 high 模型执行每日审计。验证指南 `docs/*_evolution-protocol-verification.md`（首次验证 3/9）
+- [可变] Harness 职能分离（3/6）：Jonathan 负责需求深挖+写spec+启动，老大爷通过 heartbeat 接管 MDIE 监控循环。MDIE.md symlink 共享，harness-active-project.txt 移到 shared/
+- [可变] PLAYBOOK.md 升级（3/6）：加入结构化需求深挖清单（6项）+ spec 自检清单（6项）+ 3问速审模板
