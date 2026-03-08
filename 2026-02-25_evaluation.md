@@ -99,7 +99,7 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 
 | # | 问题 | 发现日期 | 状态 |
 |---|------|----------|------|
-| 3 | message 工具参数污染 | 2/25 | ⚠️ D11 根因定位：LLM 填充全部 schema 字段，非规则问题。HEARTBEAT 已用 CLI bypass 修复 |
+| 3 | message 工具参数污染 | 2/25 | ✅ 全量修复：SHARED_RULES 禁用 message 工具，强制 CLI 发消息 + send-file.sh 发文件，9 agent 通过 symlink 继承 |
 | 5 | SSH 绑定 0.0.0.0 + 无防火墙 | 2/24 | 未处理 |
 | 6 | browser 工具超时导致 Gateway 崩溃 | 2/26 | 未处理 |
 | 21 | Gateway 重启必须外部执行 | 3/2 | 架构约束 |
@@ -108,13 +108,15 @@ SSH 登录服务器采集第一手数据（JSONL 对话记录 + systemd 日志 +
 | 28 | **脑暴→实操断层** | 3/7 | ⚠️ brainstorm 产出未迁移到 agent 规则库，urban-regen 缺 bindings+fallback |
 | 29 | stale-socket 313 次/天 | 3/7 | 轻微影响，3/3 multi-agent 后出现，auto-recovery |
 | 30 | embedded run timeout 默认过短 | 3/7 | ✅ 已修复：600s→1800s（agents.defaults.timeoutSeconds） |
+| 31 | HEARTBEAT 审计检查 2 误报循环 | 3/8 | ✅ 已修复：去掉 daily-audit.txt fallback，只检查 done 文件 |
+| 32 | Telegram 文件发送白名单 | 3/8 | ✅ 已修复：brainstorm 移到 workspace/，shared/ 反向 symlink |
 
-> 已关闭：#1,#2,#4,#7-#12,#13-#20,#22-#25,#30
+> 已关闭：#1,#2,#3,#4,#7-#12,#13-#20,#22-#25,#30,#31,#32
 
 ## Recommendations
 
 8. **清理 todo-cli 测试项目** — ~/projects/todo-cli/，可删除
-11. **message target 根治** — 壮爸侧已用 CLI bypass 修复 HEARTBEAT；DM 场景仍需 OpenClaw hook/wrapper 层拦截
+11. ~~message target 根治~~ — ✅ SHARED_RULES 全量禁用 message 工具，强制 CLI/脚本
 13. **teacher 记忆规范迁移** — 显式写入 teacher SOUL.md
 16. **Blackboard v2.0** — 当前 v1.0 单向，未来扩展为双向
 17. **brainstorm.py 稳定化** — 考虑 nohup 或独立 systemd service

@@ -55,7 +55,7 @@ YYYY-MM-DD_topic-name.md
 - [可变] Gateway: 端口 18789，仅 loopback，通过 SSH 隧道访问
 - [可变] Jonathan 综合评分 7/10（D11 →），brainstorm 内容质量突破（城市更新 MVP）+ urban-regen 第 9 agent 上线。核心问题：脑暴→实操断层（讨论产出未迁移到规则库）
 - [固定] 首次会话消耗 326.6K tokens / 6 条用户消息
-- [可变] D11 修复：embedded run timeout 600s→1800s（长任务 10 分钟中断根因）+ HEARTBEAT CLI bypass（message 参数污染根因定位）。新发现：stale-socket 313 次/天（轻微影响）
+- [可变] D11 修复：embedded run timeout 600s→1800s + message 参数污染全量根治（SHARED_RULES 禁用 message 工具，CLI/脚本替代，9 agent 继承）+ 文件发送白名单修复 + HEARTBEAT 审计误报修复
 - [可变] 服务器监控系统已部署（~/monitor/，cron 每天 08:00），推送已修复（D4，PATH 兜底）
 - [可变] mail-assistant 已切换到 163 POP3 收件（IMAP 被风控拦截），fetch+分类+入库验证通过
 - [可变] Proton Bridge keychain 已修复（D4），但邮件方案已改用 163，Bridge 暂不使用
@@ -64,7 +64,7 @@ YYYY-MM-DD_topic-name.md
 - [可变] MiniMax 用量：本地估算不可靠（reasoning tokens 不记录在 JSONL），改为余额手动汇报制（壮爸告知→Jonathan 记录→日报展示差值）
 - [可变] OpenClaw v2026.3.2 升级（3/3）：installer + mihomo 代理安装，doctor 通过，gateway 已重启
 - [可变] Gateway 重启必须由外部执行（壮爸手动 systemctl restart），Jonathan 无法安全重启自己的 gateway
-- [可变] HEARTBEAT v4 全面修复（3/2）+ D11 CLI bypass（3/7）：message 参数污染根因定位（LLM 填充全 schema 字段），4 agent HEARTBEAT 改用 `openclaw message send` CLI 绕过
+- [可变] HEARTBEAT v4（3/2）→ v5（3/8）：message 工具全面禁用，发消息用 CLI、发文件用 send-file.sh。审计检查 2 去掉 daily-audit.txt fallback 消除误报
 - [可变] 壮爸侧 `.claude/rules/` 模块化规则 + `CLAUDE.local.md` 自动加载已启用（2/27 验证通过）
 - [可变] Harness 已部署到服务器（~/projects/harness-openai/），3/2 起 Docker 沙盒运行（文件系统隔离，MDIE 零修改）
 - [可变] HEARTBEAT 已配置 MDIE 循环（每 30 分钟），但 D4 因 502 全部空转

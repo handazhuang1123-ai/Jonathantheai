@@ -6,7 +6,7 @@ author: Claude Opus 4.6 (assisting zhuangba)
 tags: [openclaw, setup, installation, onboarding, oura]
 depends_on: []
 status: current
-last_updated: 2026-03-07
+last_updated: 2026-03-08
 ---
 
 # OpenClaw Setup Summary - 2026-02-24
@@ -78,10 +78,10 @@ last_updated: 2026-03-07
 - **Polling mode**: enabled, running
 - **Routing**: bindings 按 `channel + accountId` 路由到对应 agent
 - **IDENTITY.md**: 平台层元数据（显示名、头像），不被 LLM 读取
-- **SHARED_RULES.md**（3/6 新增）：跨 agent 共享规则，源文件 `~/.openclaw/shared/SHARED_RULES.md`，各 workspace 通过 symlink 引用。git 追踪变更（Jonathan commit）
+- **SHARED_RULES.md**（3/6 新增，3/8 规则 1&2 重写）：跨 agent 共享规则，源文件 `~/.openclaw/shared/SHARED_RULES.md`，9 workspace 通过 symlink 引用。3/8 起禁用 message 工具，发消息强制 CLI、发文件强制 `send-file.sh`
 - **Workspace 标准化（3/6）**：AGENTS.md 精简到 ~40 行，启动序列统一（SOUL→SHARED_RULES→USER→MEMORY）。USER.md 统一称呼"壮爸"。emoji 全部移除
 - **agent-create skill**（3/6 新增）：Jonathan workspace/skills/agent-create/SKILL.md，对话式创建/审计/退役 agent。已验证：邮件助理（自动创建）+ 脑脑（对话式创建）
-- **Brainstorm Storm（3/6 新增）**：群聊风暴编排器 `~/.openclaw/shared/brainstorm/brainstorm.py`，通过 LLM API 直接驱动三人讨论（Jonathan 主持 + 拆哥 + 建姐），消息发到 Telegram 群 `脑力激荡小组`。Jonathan 通过 groupSystemPrompt 触发执行。拆哥/建姐 groupPolicy=disabled（仅编排器控制发言）
+- **Brainstorm Storm（3/6 新增）**：群聊风暴编排器 brainstorm.py，三人讨论（Jonathan+拆哥+建姐）。实体目录 `workspace/brainstorm/`（3/8 从 shared/ 移入，解决文件发送白名单），`shared/brainstorm` 为反向 symlink。Jonathan 通过 groupSystemPrompt 触发执行
 - **群聊配置发现（3/6）**：群聊 session 不注入 startup sequence（不读 SOUL/MEMORY）；groupSystemPrompt 通过 `groups.*.systemPrompt` 注入；bot 互相看不到消息（Telegram Bot API 限制）；`owner` 不是 openclaw.json 合法键
 - **Blackboard v1.0**（3/6 新增）：老大爷 weekly-memory-scan.sh 扫描所有 MEMORY.md 增量 → 写 `~/.openclaw/shared/pending-review.md` → Jonathan heartbeat 读取分析 → 推送壮爸确认。cron 每周一 09:00
 - **Evolution Protocol（3/6 新增）**：SHARED_RULES 协议14-16（自检信号/弹性容量/错误记录），8 agent 通过 symlink 自动继承。`audit-collector.sh` cron 08:30 零 token 采集 → `shared/daily-audit.txt` → 老大爷 heartbeat 审计
